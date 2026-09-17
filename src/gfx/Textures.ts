@@ -147,6 +147,34 @@ export function generateTextures(scene: Phaser.Scene): void {
     4,
   );
   pixelTexture(scene, 'bush', ['..gggg..', '.gGgggg.', 'ggggGggg', '.gggggg.'], { g: 0x2d6a4f, G: 0x52b788 }, 4);
+  // Cây to cho quảng trường: tán rộng nhiều lớp, thân cao
+  pixelTexture(
+    scene,
+    'tree-big',
+    [
+      '.......gggg.......',
+      '.....gGggggGg.....',
+      '....gggggggggg....',
+      '...gGgggGggggGgg..',
+      '..gggggggggggggggg',
+      '..ggGggggggGgggggg',
+      '.gggggggGggggggggg',
+      '.ggGgggggggggGgggg',
+      '.gggggggggggggggg.',
+      '..ggdggGgggggdgg..',
+      '...ddggggdgggdd...',
+      '....ddddddddddd...',
+      '.......bbbb.......',
+      '.......bbbb.......',
+      '.......bBbb.......',
+      '.......bBbb.......',
+      '.......bbbb.......',
+      '......bbbbbb......',
+      '.....bbbbbbbb.....',
+    ],
+    { g: 0x2d6a4f, G: 0x52b788, d: 0x1f4d38, b: 0x6f4e37, B: 0x8b6a4a },
+    4,
+  );
   pixelTexture(scene, 'drop', ['b', 'b', 'B'], { b: 0x9ad0ec, B: 0xffffff }, 2);
   pixelTexture(scene, 'leaf', ['.g', 'gg', 'g.'], { g: 0xa7c957 }, 2);
   pixelTexture(scene, 'spark', ['y'], { y: 0xffd166 }, 3);

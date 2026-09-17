@@ -83,6 +83,10 @@ export interface BackdropOpts {
   baseDepth?: number;
   /** khoảng cách từ chân trời tới gốc cây to (mép dải cỏ) */
   treeY?: number;
+  /** vị trí x các cây to */
+  treeXs?: number[];
+  /** hệ số phóng cây to (texture gốc 72x76) */
+  treeScale?: number;
 }
 
 /**
@@ -102,41 +106,15 @@ export function drawBackdrop(scene: Phaser.Scene, horizon: number, opts: Backdro
   };
   add(scene.add.image(0, horizon + 2, 'mountains').setOrigin(0, 1).setDepth(base).setAlpha(0.9));
   add(scene.add.image(0, horizon + 10, 'hills-far').setOrigin(0, 1).setDepth(base + 1));
-  // cây nhỏ đứng trên đỉnh các đồi xa (toạ độ y = đỉnh đồi tại x đó)
-  for (const [x, s, top] of [
-    [60, 0.5, 56],
-    [95, 0.42, 52],
-    [280, 0.55, 68],
-    [330, 0.45, 62],
-    [520, 0.5, 50],
-    [740, 0.55, 66],
-    [700, 0.45, 62],
-    [940, 0.5, 54],
-  ] as Array<[number, number, number]>) {
-    add(scene.add.image(x, horizon + 10 - top + 2, 'tree').setOrigin(0.5, 1).setScale(s).setDepth(base + 2));
-  }
   add(scene.add.image(0, horizon + 18, 'hills-near').setOrigin(0, 1).setDepth(base + 3));
-  // cây vừa trên đồi gần
-  for (const [x, s, top] of [
-    [200, 0.7, 42],
-    [430, 0.6, 34],
-    [640, 0.7, 44],
-    [880, 0.65, 38],
-  ] as Array<[number, number, number]>) {
-    add(scene.add.image(x, horizon + 18 - top + 2, 'tree').setOrigin(0.5, 1).setScale(s).setDepth(base + 4));
-  }
-  // cây to trên dải cỏ, đứng sát mặt đất kèm bóng
-  for (const [x, s] of [
-    [18, 0.9],
-    [395, 1.2],
-    [GAME_WIDTH / 2, 0.85],
-    [565, 1.2],
-    [GAME_WIDTH - 18, 0.9],
-  ] as Array<[number, number]>) {
+  // cây to cao trên dải cỏ, đứng sát mặt đất kèm bóng (không dùng cây nhỏ)
+  const treeXs = opts.treeXs ?? [12, 380, 580, GAME_WIDTH - 12];
+  for (const x of treeXs) {
+    const s = opts.treeScale ?? 1.6;
     const y = horizon + treeY;
-    const shadow = scene.add.ellipse(x, y - 2, 40 * s, 10 * s, 0x000000, 0.22).setDepth(base + 4);
+    const shadow = scene.add.ellipse(x, y - 3, 56 * s, 12 * s, 0x000000, 0.22).setDepth(base + 4);
     out.push(shadow);
-    add(scene.add.image(x, y, 'tree').setOrigin(0.5, 1).setScale(s).setDepth(base + 5));
+    add(scene.add.image(x, y, 'tree-big').setOrigin(0.5, 1).setScale(s).setDepth(base + 5));
   }
   for (const x of [300, 660, 480]) {
     const shadow = scene.add.ellipse(x, horizon + treeY + 4, 34, 8, 0x000000, 0.2).setDepth(base + 4);
