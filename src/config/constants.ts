@@ -41,4 +41,5 @@ export const SCENE = {
   dayEnd: 'DayEndScene',
   boss: 'BossScene',
   ending: 'EndingScene',
+  pause: 'PauseScene',
 } as const;

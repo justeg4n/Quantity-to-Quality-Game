@@ -36,6 +36,13 @@ export class BootScene extends Phaser.Scene {
   }
 
   async create(): Promise<void> {
+    // Một số môi trường (iframe, automation) không phát 'mouseover' -> Phaser bỏ qua click.
+    const forceOver = () => {
+      (this.game.input as unknown as { isOver: boolean }).isOver = true;
+    };
+    forceOver();
+    window.addEventListener('pointerdown', forceOver, true);
+    window.addEventListener('mousedown', forceOver, true);
     generateTextures(this);
     try {
       await document.fonts.load(`22px ${FONT}`);

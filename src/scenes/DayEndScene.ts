@@ -6,6 +6,7 @@ import { ensureAvatar } from '../gfx/Avatar';
 import { SkyLayer } from '../gfx/Sky';
 import { game } from '../systems/GameState';
 import { Sfx } from '../systems/Sfx';
+import { enablePause } from './PauseScene';
 import { Button, drawRadar, txt } from '../ui/Widgets';
 
 const HORIZON = 330;
@@ -19,6 +20,7 @@ export class DayEndScene extends Phaser.Scene {
   }
 
   create(): void {
+    enablePause(this);
     const dayNum = game.day.currentDay;
     const gymN = game.day.gymToday;
     const studyN = game.day.studyToday;

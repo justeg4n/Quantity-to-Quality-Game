@@ -30,8 +30,8 @@ export class TitleScene extends Phaser.Scene {
     const weak = StatsManager.empty();
     const strong = StatsManager.empty();
     strong.physical = { nguc: 6, vai: 6, lung: 6, tay: 7, bung: 6, chan: 6 };
-    const a1 = this.add.image(GAME_WIDTH / 2 - 90, GAME_HEIGHT * 0.7 + 42, ensureAvatar(this, weak, 'idle', 3)).setOrigin(0.5, 1);
-    const a2 = this.add.image(GAME_WIDTH / 2 + 90, GAME_HEIGHT * 0.7 + 42, ensureAvatar(this, strong, 'flex', 3)).setOrigin(0.5, 1);
+    const a1 = this.add.image(GAME_WIDTH / 2 - 250, GAME_HEIGHT * 0.7 + 42, ensureAvatar(this, weak, 'idle', 3)).setOrigin(0.5, 1);
+    const a2 = this.add.image(GAME_WIDTH / 2 + 250, GAME_HEIGHT * 0.7 + 42, ensureAvatar(this, strong, 'flex', 3)).setOrigin(0.5, 1);
     this.time.addEvent({
       delay: 600,
       loop: true,
@@ -127,9 +127,9 @@ export class TitleScene extends Phaser.Scene {
       '   Hoàn thành → +1 điểm nhóm cơ đó. Nhân vật to dần đúng nhóm cơ đã tập.',
       'ATHENS (học): chọn khối kiến thức → trả lời 2 câu trắc nghiệm → +1 điểm khối đó.',
       '',
-      'NGÀY 11 — THỬ THÁCH CUỐI "VÒNG XOÁY BIỆN CHỨNG" gồm 3 pha. Để thắng cần:',
-      '   Ngực ≥3  Vai ≥3  Lưng ≥3  Chân ≥3  Bụng ≥3  Tay ≥6   và  mỗi khối kiến thức ≥2',
-      '   (33/50 điểm tối thiểu — còn 17 điểm tự do). Thiếu 1 chỉ số là thua!',
+      'NGÀY 11 — THỬ THÁCH CUỐI "VÒNG XOÁY BIỆN CHỨNG" gồm 3 pha, dùng chính thành quả 10 ngày:',
+      '   mỗi bài tập ở pha cuối tiêu hao điểm các nhóm cơ liên quan, đề thi rút từ mọi khối kiến thức.',
+      '   Tích luỹ bao nhiêu là đủ? Hãy tự khám phá — lượng đổi đến đâu thì chất đổi!',
       '',
       'Mẹo: 3 rep Perfect liên tiếp → combo; 2 combo → +1 điểm phụ trội. Đúng cả 2 câu → huy hiệu Triết gia.',
     ];

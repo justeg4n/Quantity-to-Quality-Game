@@ -48,13 +48,14 @@ export class QuizPanel extends Phaser.GameObjects.Container {
     this.qText.setText(q.question);
     let y = this.qText.height + 14;
     q.options.forEach((opt, i) => {
-      const label = txt(this.scene, 14, y + 6, `${i + 1}. ${opt}`, this.o.optionSize, C.cream, { wordWrap: { width: this.o.w - 28 } });
+      const oy = y; // cố định toạ độ cho closure (y còn thay đổi sau vòng lặp)
+      const label = txt(this.scene, 14, oy + 6, `${i + 1}. ${opt}`, this.o.optionSize, C.cream, { wordWrap: { width: this.o.w - 28 } });
       const h = label.height + 12;
       const bg = this.scene.add.graphics();
-      this.drawOption(bg, y, h, C.panelLight);
-      const zone = this.scene.add.zone(0, y, this.o.w, h).setOrigin(0).setInteractive({ useHandCursor: true });
-      zone.on('pointerover', () => { if (!this.answered) { this.drawOption(bg, y, h, C.purpleHex); Sfx.hover(); } });
-      zone.on('pointerout', () => { if (!this.answered) this.drawOption(bg, y, h, C.panelLight); });
+      this.drawOption(bg, oy, h, C.panelLight);
+      const zone = this.scene.add.zone(0, oy, this.o.w, h).setOrigin(0).setInteractive({ useHandCursor: true });
+      zone.on('pointerover', () => { if (!this.answered) { this.drawOption(bg, oy, h, C.purpleHex); Sfx.hover(); } });
+      zone.on('pointerout', () => { if (!this.answered) this.drawOption(bg, oy, h, C.panelLight); });
       zone.on('pointerup', () => this.choose(i));
       this.add(bg);
       this.add(label);

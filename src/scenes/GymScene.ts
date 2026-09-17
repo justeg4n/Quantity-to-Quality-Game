@@ -7,6 +7,7 @@ import type { PhysicalKey } from '../data/types';
 import { ensureAvatar } from '../gfx/Avatar';
 import { game } from '../systems/GameState';
 import { Sfx } from '../systems/Sfx';
+import { enablePause } from './PauseScene';
 import { Button, PointsHud, SpeechBubble, StatBar, floatText, modal, txt } from '../ui/Widgets';
 
 interface GymReturn {
@@ -27,6 +28,7 @@ export class GymScene extends Phaser.Scene {
   }
 
   create(data: GymReturn): void {
+    enablePause(this);
     this.bars = {};
     this.machines = [];
     game.gymVisits += 1;
@@ -71,7 +73,7 @@ export class GymScene extends Phaser.Scene {
     pg.fillStyle(C.panel, 1).fillRect(px0 - 6, 214, 292, 312);
     txt(this, px0 + 140, 222, 'THỂ CHẤT', 22, C.orange).setOrigin(0.5, 0);
     PHYSICAL_KEYS.forEach((k, i) => {
-      this.bars[k] = new StatBar(this, px0 + 4, 262 + i * 30, PHYSICAL_LABEL[k], game.stats.physical(k), BALANCE.physicalMin[k], C.orangeHex, 210);
+      this.bars[k] = new StatBar(this, px0 + 4, 262 + i * 30, PHYSICAL_LABEL[k], game.stats.physical(k), 0, C.orangeHex, 210);
     });
     this.avatar = this.add.image(px0 + 140, 520, ensureAvatar(this, game.stats.stats, 'flex', 2)).setOrigin(0.5, 1);
     this.time.addEvent({ delay: 700, loop: true, callback: () => this.avatar.setTexture(ensureAvatar(this, game.stats.stats, this.avatar.texture.key.includes('flex') ? 'idle' : 'flex', 2)) });
@@ -111,9 +113,10 @@ export class GymScene extends Phaser.Scene {
     const img = this.add.image(0, 0, `machine-${k}`).setOrigin(0.5, 1).setScale(2);
     c.add(img);
     c.add(txt(this, 0, 6, `${PHYSICAL_LABEL[k].toUpperCase()}`, 22, C.gold).setOrigin(0.5, 0));
-    c.add(txt(this, 0, 28, `${ex.name} · ${ex.mode === 'mash' ? 'Bấm liên tục' : 'Canh thời điểm'}`, 15, C.cream).setOrigin(0.5, 0));
+    c.add(txt(this, 0, 28, ex.name, 15, C.cream).setOrigin(0.5, 0));
+    c.add(txt(this, 0, 44, ex.mode === 'mash' ? '[bấm liên tục]' : '[canh thời điểm]', 13, C.gray).setOrigin(0.5, 0));
     const v = game.stats.physical(k);
-    c.add(txt(this, 46, -92, `${v}`, 20, v >= BALANCE.physicalMin[k] ? C.green : C.orange, { stroke: '#0b0716', strokeThickness: 3 }).setOrigin(0.5));
+    c.add(txt(this, 46, -92, `${v}`, 20, C.gold, { stroke: '#0b0716', strokeThickness: 3 }).setOrigin(0.5));
     c.setSize(120, 130);
     c.setInteractive({ useHandCursor: true });
     c.on('pointerover', () => { glow.setFillStyle(0xffd166, 0.12); Sfx.hover(); });
@@ -146,7 +149,7 @@ export class GymScene extends Phaser.Scene {
         { lineSpacing: 4 },
       ),
     );
-    m.root.add(txt(this, -120, 0, `Hiện tại: ${PHYSICAL_LABEL[k]} = ${game.stats.physical(k)}  (ngưỡng ${BALANCE.physicalMin[k]})`, 20, C.orange));
+    m.root.add(txt(this, -120, 0, `Hiện tại: ${PHYSICAL_LABEL[k]} = ${game.stats.physical(k)}`, 20, C.orange));
     m.root.add(txt(this, -120, 26, 'Tốn 1 điểm đầu ngày', 20, C.red));
     m.root.add(new Button(this, -110, 85, 'TẬP  (−1 ⌛)', () => { m.close(); this.startExercise(k); }, { w: 200, h: 46, fill: C.greenHex, color: C.dark }));
     m.root.add(new Button(this, 110, 85, 'HUỶ', () => m.close(), { w: 200, h: 46 }));

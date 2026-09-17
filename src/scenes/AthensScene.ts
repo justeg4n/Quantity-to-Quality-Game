@@ -7,6 +7,7 @@ import { questionsByCategory } from '../data/questions';
 import { ensureAvatar } from '../gfx/Avatar';
 import { game } from '../systems/GameState';
 import { Sfx } from '../systems/Sfx';
+import { enablePause } from './PauseScene';
 import { Button, PointsHud, SpeechBubble, StatBar, floatText, modal, txt } from '../ui/Widgets';
 
 interface AthensReturn {
@@ -23,6 +24,7 @@ export class AthensScene extends Phaser.Scene {
   }
 
   create(data: AthensReturn): void {
+    enablePause(this);
     game.athensVisits += 1;
 
     // ─── Nội thất ───
@@ -52,7 +54,7 @@ export class AthensScene extends Phaser.Scene {
     pg.fillStyle(C.panel, 1).fillRect(px0 - 6, 214, 292, 312);
     txt(this, px0 + 140, 222, 'KIẾN THỨC', 22, C.sky).setOrigin(0.5, 0);
     KNOWLEDGE_KEYS.forEach((k, i) => {
-      new StatBar(this, px0 + 4, 262 + i * 30, KNOWLEDGE_SHORT[k], game.stats.knowledge(k), BALANCE.knowledgeMin, C.skyHex, 210);
+      new StatBar(this, px0 + 4, 262 + i * 30, KNOWLEDGE_SHORT[k], game.stats.knowledge(k), 0, C.skyHex, 210);
     });
     const av = this.add.image(px0 + 140, 520, ensureAvatar(this, game.stats.stats, 'idle', 2)).setOrigin(0.5, 1);
     this.add.image(px0 + 140, 372, 'icon-book');
@@ -96,7 +98,7 @@ export class AthensScene extends Phaser.Scene {
     c.add(txt(this, 0, 6, KNOWLEDGE_LABEL[k].toUpperCase(), k === 'diemNutBuocNhay' || k === 'quanHeLuongChat' ? 15 : 20, C.blue).setOrigin(0.5, 0));
     c.add(txt(this, 0, 28, KNOWLEDGE_DESC[k].length > 26 ? KNOWLEDGE_DESC[k].slice(0, 25) + '…' : KNOWLEDGE_DESC[k], 13, C.dark).setOrigin(0.5, 0));
     const v = game.stats.knowledge(k);
-    c.add(txt(this, 50, -92, `${v}`, 20, v >= BALANCE.knowledgeMin ? C.green : C.orange, { stroke: '#0b0716', strokeThickness: 3 }).setOrigin(0.5));
+    c.add(txt(this, 50, -92, `${v}`, 20, C.gold, { stroke: '#0b0716', strokeThickness: 3 }).setOrigin(0.5));
     c.setSize(124, 130);
     c.setInteractive({ useHandCursor: true });
     c.on('pointerover', () => { glow.setFillStyle(0x118ab2, 0.15); Sfx.hover(); });
@@ -117,7 +119,7 @@ export class AthensScene extends Phaser.Scene {
     m.root.add(txt(this, 0, -95, `Khối: ${KNOWLEDGE_LABEL[k]}`, 26, C.gold).setOrigin(0.5));
     m.root.add(txt(this, 0, -60, KNOWLEDGE_DESC[k], 19, C.cream).setOrigin(0.5));
     m.root.add(txt(this, 0, -28, `Trả lời ${BALANCE.questionsPerStudy} câu trắc nghiệm → +1 điểm khối này.\nĐã gặp ${seen}/${total} câu trong ngân hàng.`, 18, C.cream, { align: 'center' }).setOrigin(0.5));
-    m.root.add(txt(this, 0, 14, `Hiện tại: ${game.stats.knowledge(k)}  (ngưỡng ${BALANCE.knowledgeMin})   ·   Tốn 1 điểm đầu ngày`, 19, C.orange).setOrigin(0.5));
+    m.root.add(txt(this, 0, 14, `Hiện tại: ${KNOWLEDGE_LABEL[k]} = ${game.stats.knowledge(k)}   ·   Tốn 1 điểm đầu ngày`, 19, C.orange).setOrigin(0.5));
     m.root.add(new Button(this, -110, 80, 'HỌC  (−1 ⌛)', () => { m.close(); this.startQuiz(k); }, { w: 200, h: 46, fill: C.blueHex }));
     m.root.add(new Button(this, 110, 80, 'HUỶ', () => m.close(), { w: 200, h: 46 }));
   }

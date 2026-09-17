@@ -6,6 +6,7 @@ import { ensureAvatar } from '../gfx/Avatar';
 import { SkyLayer } from '../gfx/Sky';
 import { game } from '../systems/GameState';
 import { Sfx } from '../systems/Sfx';
+import { enablePause } from './PauseScene';
 import { Button, drawRadar, modal, txt } from '../ui/Widgets';
 
 const HORIZON = 330;
@@ -16,6 +17,7 @@ export class EndingScene extends Phaser.Scene {
   }
 
   create(): void {
+    enablePause(this);
     const result = game.lastBossResult ?? { won: game.badges.champion, reasons: [] };
     const won = result.won;
 
@@ -133,7 +135,7 @@ export class EndingScene extends Phaser.Scene {
     m.root.add(txt(this, 0, -210, 'HỒI KÝ 10 NGÀY', 30, C.gold).setOrigin(0.5));
     const lines = game.day.log.length ? game.day.log.map((r) => r.diary) : ['(Chưa có nhật ký)'];
     m.root.add(txt(this, -380, -170, lines.join('\n'), 17, C.cream, { wordWrap: { width: 760 }, lineSpacing: 3 }));
-    m.root.add(txt(this, 0, 150, `${BALANCE.totalDays} ngày · ${BALANCE.totalDays * BALANCE.pointsPerDay} điểm · tối thiểu 33 để thắng`, 15, C.gray).setOrigin(0.5));
+    m.root.add(txt(this, 0, 150, `${BALANCE.totalDays} ngày · ${BALANCE.totalDays * BALANCE.pointsPerDay} điểm đầu ngày`, 15, C.gray).setOrigin(0.5));
     m.root.add(new Button(this, 0, 195, 'ĐÓNG', () => m.close(), { w: 180, h: 42, size: 20 }));
   }
 }

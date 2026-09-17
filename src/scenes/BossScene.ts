@@ -10,6 +10,7 @@ import { StatsManager } from '../systems/StatsManager';
 import { game } from '../systems/GameState';
 import { QuizEngine } from '../systems/QuizEngine';
 import { Sfx } from '../systems/Sfx';
+import { enablePause } from './PauseScene';
 import { bindAction, bindNumberKeys } from '../ui/ActionInput';
 import { QuizPanel } from '../ui/QuizPanel';
 import { ActionButton, Button, floatText, modal, txt } from '../ui/Widgets';
@@ -68,6 +69,7 @@ export class BossScene extends Phaser.Scene {
   }
 
   create(): void {
+    enablePause(this);
     this.phase = 'intro';
     this.usedQ = new Set();
     this.unbinders = [];
@@ -114,10 +116,10 @@ export class BossScene extends Phaser.Scene {
 
   private banner(title: string, hint: string, then: () => void): void {
     this.busy = true;
-    const m = modal(this, 760, 200, 95);
-    m.root.add(txt(this, 0, -60, title, 34, C.red, { stroke: '#000000', strokeThickness: 4 }).setOrigin(0.5));
-    m.root.add(txt(this, 0, -5, hint, 20, C.cream, { wordWrap: { width: 700 }, align: 'center' }).setOrigin(0.5));
-    m.root.add(new Button(this, 0, 60, 'BẮT ĐẦU!', () => { m.close(); this.busy = false; then(); }, { w: 220, h: 46, fill: C.redHex }));
+    const m = modal(this, 800, 250, 95);
+    m.root.add(txt(this, 0, -85, title, 34, C.red, { stroke: '#000000', strokeThickness: 4 }).setOrigin(0.5));
+    m.root.add(txt(this, 0, -20, hint, 19, C.cream, { wordWrap: { width: 740 }, align: 'center' }).setOrigin(0.5));
+    m.root.add(new Button(this, 0, 80, 'BẮT ĐẦU!', () => { m.close(); this.busy = false; then(); }, { w: 220, h: 46, fill: C.redHex }));
   }
 
   private bossHit(): void {
@@ -151,7 +153,7 @@ export class BossScene extends Phaser.Scene {
     m.root.add(this.add.image(-290, -20, 'boss-1').setScale(0.6));
     m.root.add(txt(this, 40, -90, 'VÒNG XOÁY BIỆN CHỨNG', 30, C.red).setOrigin(0.5));
     m.root.add(txt(this, 40, -30, BOSS_LINES.intro[0], 20, C.cream, { wordWrap: { width: 480 }, align: 'center' }).setOrigin(0.5));
-    m.root.add(txt(this, 40, 30, `Lần thử: ${game.bossAttempts}   ·   3 pha   ·   Công thức thắng: Ngực/Vai/Lưng/Chân/Bụng ≥3, Tay ≥6, mỗi khối kiến thức ≥2`, 15, C.gray, { wordWrap: { width: 500 }, align: 'center' }).setOrigin(0.5));
+    m.root.add(txt(this, 40, 30, `Lần thử: ${game.bossAttempts}   ·   3 pha   ·   Pha cuối sẽ tiêu hao chính thành quả 10 ngày của ngươi.`, 15, C.gray, { wordWrap: { width: 500 }, align: 'center' }).setOrigin(0.5));
     m.root.add(new Button(this, 40, 90, 'NGHÊNH CHIẾN', () => { m.close(); this.startPhase1(); }, { w: 240, h: 46, fill: C.redHex }));
   }
 
@@ -436,8 +438,8 @@ export class BossScene extends Phaser.Scene {
       g.fillStyle(0x0b0716, 0.8).fillRect(0, 40, GAME_WIDTH, GAME_HEIGHT - 40);
       g.fillStyle(C.borderHex, 1).fillRect(GAME_WIDTH / 2 - 3, 40, 6, GAME_HEIGHT - 40);
       this.phaseRoot.add(g);
-      this.phaseRoot.add(txt(this, 240, 52, 'THỂ CHẤT — tiêu hao thành quả', 20, C.orange).setOrigin(0.5, 0));
-      this.phaseRoot.add(txt(this, 720, 52, `KIẾN THỨC — đề ${BALANCE.bossQuestions} câu, cần đúng cả ${BALANCE.bossQuestions}`, 20, C.sky).setOrigin(0.5, 0));
+      this.phaseRoot.add(txt(this, 240, 44, 'THỂ CHẤT — tiêu hao thành quả', 20, C.orange).setOrigin(0.5, 0));
+      this.phaseRoot.add(txt(this, 720, 44, `KIẾN THỨC — đề ${BALANCE.bossQuestions} câu, cần đúng cả ${BALANCE.bossQuestions}`, 20, C.sky).setOrigin(0.5, 0));
 
       // điểm cơ hiện tại
       PHYSICAL_KEYS.forEach((k, i) => {
@@ -472,7 +474,7 @@ export class BossScene extends Phaser.Scene {
       this.phaseRoot.add(new Button(this, 240, GAME_HEIGHT - 30, 'BỎ CUỘC', () => this.p3GiveUp(), { w: 160, h: 36, size: 18, fill: 0x3a2a2a }));
 
       // đề thi
-      this.p3Quiz = new QuizPanel(this, GAME_WIDTH / 2 + 20, 84, { w: 430, questionSize: 17, optionSize: 15, instantFeedback: true, optionGap: 4 });
+      this.p3Quiz = new QuizPanel(this, GAME_WIDTH / 2 + 20, 92, { w: 430, questionSize: 17, optionSize: 15, instantFeedback: true, optionGap: 4 });
       this.phaseRoot.add(this.p3Quiz);
       this.unbinders.push(bindNumberKeys(this, (i) => this.p3Quiz?.choose(i)));
       this.p3RefreshCards();
@@ -495,20 +497,19 @@ export class BossScene extends Phaser.Scene {
         c.status.setText(lacking.length ? `Không đủ sức: ${lacking.map((m) => PHYSICAL_LABEL[m]).join(', ')} = 0` : 'Bấm để thực hiện 1 lần').setColor(lacking.length ? C.red : C.green);
       }
     });
-    // kiểm tra khả thi: tổng nhu cầu còn lại của mỗi nhóm cơ
-    const need: Partial<Record<PhysicalKey, number>> = {};
+    // Bị kẹt: còn bài chưa xong mà một nhóm cơ liên quan đã về 0 (người chơi tự "khám phá" giới hạn của mình)
+    const stuck = new Set<PhysicalKey>();
     BALANCE.bossExercises.forEach((ex) => {
-      const remain = BALANCE.bossExerciseReps - this.p3Counts[ex.id];
-      ex.muscles.forEach((m) => (need[m] = (need[m] ?? 0) + remain));
+      if (this.p3Counts[ex.id] >= BALANCE.bossExerciseReps) return;
+      ex.muscles.filter((m) => game.stats.physical(m) < 1).forEach((m) => stuck.add(m));
     });
-    const infeasible = PHYSICAL_KEYS.filter((k) => (need[k] ?? 0) > game.stats.physical(k));
     this.p3PhysDone = BALANCE.bossExercises.every((ex) => this.p3Counts[ex.id] >= BALANCE.bossExerciseReps);
-    if (this.p3PhysDone) this.p3Status.setText('✔ Phần thể chất hoàn thành!');
-    else if (infeasible.length && !this.p3Doomed) {
+    if (this.p3PhysDone) this.p3Status.setText('✔ Phần thể chất hoàn thành!').setColor(C.green);
+    else if (stuck.size && !this.p3Doomed) {
       this.p3Doomed = true;
-      this.p3Status.setText(`Không thể hoàn thành phần thể chất — thiếu: ${infeasible.map((k) => PHYSICAL_LABEL[k]).join(', ')}.`).setColor(C.red);
-      this.time.delayedCall(1800, () => { if (this.phase === 'p3') this.p3Finish(); });
-    } else this.p3Status.setText('Mỗi lần thực hiện trừ 1 điểm ở mọi nhóm cơ liên quan.');
+      this.p3Status.setText(`Hết sức! ${[...stuck].map((k) => PHYSICAL_LABEL[k]).join(', ')} đã về 0 — không thể hoàn thành phần thể chất.`).setColor(C.red);
+      this.time.delayedCall(2200, () => { if (this.phase === 'p3') this.p3Finish(); });
+    } else this.p3Status.setText('Mỗi lần thực hiện trừ 1 điểm ở mọi nhóm cơ liên quan.').setColor(C.gold);
     this.p3CheckDone();
   }
 
@@ -549,14 +550,14 @@ export class BossScene extends Phaser.Scene {
     const idx = this.p3Index;
     const header = this.phaseRoot.getByName('examHeader') as Phaser.GameObjects.Text | null;
     header?.destroy();
-    const h = txt(this, GAME_WIDTH / 2 + 20, 62, `Câu ${idx + 1}/${this.p3Exam.length} · Khối ${KNOWLEDGE_LABEL[q.category]} (đã học ${level})`, 15, C.gray).setName('examHeader');
+    const h = txt(this, GAME_WIDTH / 2 + 20, 70, `Câu ${idx + 1}/${this.p3Exam.length} · Khối ${KNOWLEDGE_LABEL[q.category]} (đã học ${level} lần)`, 15, C.gray).setName('examHeader');
     this.phaseRoot.add(h);
 
     if (level < BALANCE.knowledgeMin) {
       // Chưa tích luỹ đủ lượng → không thể "đọc" được câu hỏi (công thức gốc: mỗi khối >= 2)
       const garbled: QuizQuestion = {
         ...q,
-        question: `▓▓▓▓ ▓▓▓ ▓▓▓▓▓▓ ▓▓ ▓▓▓▓▓ ▓▓▓▓?\n(Bạn chưa học đủ khối "${KNOWLEDGE_LABEL[q.category]}": cần ≥ ${BALANCE.knowledgeMin}, hiện ${level})`,
+        question: `▓▓▓▓ ▓▓▓ ▓▓▓▓▓▓ ▓▓ ▓▓▓▓▓ ▓▓▓▓?\n(Kiến thức khối "${KNOWLEDGE_LABEL[q.category]}" chưa đủ để đọc câu hỏi này — đã học ${level} lần)`,
         options: ['▓▓▓▓ ▓▓▓▓▓ ▓▓', '▓▓▓ ▓▓▓▓▓▓ ▓▓▓▓', '▓▓▓▓▓ ▓▓ ▓▓▓', '▓▓ ▓▓▓▓ ▓▓▓▓▓'],
         correctIndex: -1,
       };

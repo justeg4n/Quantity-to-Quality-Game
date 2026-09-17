@@ -7,6 +7,7 @@ import { DayEndScene } from './scenes/DayEndScene';
 import { EndingScene } from './scenes/EndingScene';
 import { ExerciseScene } from './scenes/ExerciseScene';
 import { GymScene } from './scenes/GymScene';
+import { PauseScene } from './scenes/PauseScene';
 import { QuizScene } from './scenes/QuizScene';
 import { TitleScene } from './scenes/TitleScene';
 import { TownScene } from './scenes/TownScene';
@@ -25,7 +26,7 @@ const config: Phaser.Types.Core.GameConfig = {
     autoCenter: Phaser.Scale.CENTER_BOTH,
   },
   input: { activePointers: 2 },
-  scene: [BootScene, TitleScene, TownScene, GymScene, ExerciseScene, AthensScene, QuizScene, DayEndScene, BossScene, EndingScene],
+  scene: [BootScene, TitleScene, TownScene, GymScene, ExerciseScene, AthensScene, QuizScene, DayEndScene, BossScene, EndingScene, PauseScene],
 };
 
 const phaserGame = new Phaser.Game(config);

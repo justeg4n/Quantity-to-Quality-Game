@@ -27,7 +27,9 @@ Yêu cầu Node.js ≥ 18.
 | Combo | 3 rep Perfect liên tiếp → combo (rep cuối tự hoàn thành); 2 combo → +1 điểm phụ trội. Đúng cả 2 câu → huy hiệu *Triết gia* trong ngày. |
 | Boss | **Pha 1** Lượng đổi → Chất đổi (câu hỏi + bùng nổ push-up), **Pha 2** Đấu tranh các mặt đối lập (split-screen timing + quiz đếm giờ), **Pha 3** Phủ định của phủ định (3 bài tập ×3 tiêu hao chỉ số + đề 5 câu). |
 
-### Công thức thắng/thua (cân bằng lõi — `src/data/balance.ts`)
+### Công thức thắng/thua — SPOILER (cân bằng lõi — `src/data/balance.ts`)
+
+Trong game **không hiển thị** ngưỡng này; người chơi tự khám phá, chỉ khi thua màn kết thúc mới hé lộ chỉ số nào còn thiếu.
 
 ```
 THẮNG ⇔ Ngực≥3 AND Vai≥3 AND Lưng≥3 AND Chân≥3 AND Bụng≥3 AND Tay≥6
@@ -45,6 +47,7 @@ Pha 1 và 2 thua chỉ cần chơi lại pha đó, không mất chỉ số.
 - `← →` / `WASD` di chuyển ở quảng trường, `Space`/`E` vào nhà, click chuột cũng được.
 - `Space` hoặc chạm vào nút vàng để thực hiện rep (hỗ trợ mobile).
 - Phím `1–4` hoặc click để chọn đáp án.
+- `Esc` (hoặc nút ☰ MENU): tạm dừng — tiếp tục, bật/tắt âm thanh, hướng dẫn, về màn hình chính, chơi lại.
 
 ## Cấu trúc
 
@@ -58,7 +61,7 @@ src/
   systems/            GameState (stats + day + save), StatsManager, ExerciseEngine, QuizEngine, Sfx (WebAudio)
   gfx/                Textures (pixel-art sinh bằng code), Avatar (nhân vật tham số theo chỉ số), Sky (ngày/đêm)
   ui/                 Widgets (Button, StatBar, Radar, Modal, HUD...), QuizPanel, ActionInput
-  scenes/             Boot → Title → Town ⇄ Gym/Exercise · Athens/Quiz → DayEnd → Boss → Ending
+  scenes/             Boot → Title → Town ⇄ Gym/Exercise · Athens/Quiz → DayEnd → Boss → Ending (+ Pause overlay)
 ```
 
 Toàn bộ sprite/tile/UI được vẽ bằng code (`gfx/Textures.ts`, `gfx/Avatar.ts`) nên không cần asset ảnh.

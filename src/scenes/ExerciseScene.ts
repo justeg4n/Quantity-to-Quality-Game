@@ -7,6 +7,7 @@ import { ensureAvatar, type Pose } from '../gfx/Avatar';
 import { ExerciseEngine, TIMING_ZONES, type RepGrade } from '../systems/ExerciseEngine';
 import { game } from '../systems/GameState';
 import { Sfx } from '../systems/Sfx';
+import { enablePause } from './PauseScene';
 import { bindAction } from '../ui/ActionInput';
 import { ActionButton, Button, floatText, modal, txt } from '../ui/Widgets';
 
@@ -39,6 +40,7 @@ export class ExerciseScene extends Phaser.Scene {
   }
 
   create(data: { muscle: PhysicalKey }): void {
+    enablePause(this);
     this.muscle = data.muscle;
     this.finished = false;
     this.videoSized = false;

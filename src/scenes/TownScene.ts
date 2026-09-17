@@ -5,6 +5,7 @@ import { ensureAvatar, type Pose } from '../gfx/Avatar';
 import { SkyLayer, timeFromPoints } from '../gfx/Sky';
 import { game } from '../systems/GameState';
 import { Sfx } from '../systems/Sfx';
+import { enablePause } from './PauseScene';
 import { Button, PointsHud, StatBar, modal, txt } from '../ui/Widgets';
 
 const HORIZON = 330;
@@ -32,6 +33,7 @@ export class TownScene extends Phaser.Scene {
   }
 
   create(data: { from?: 'gym' | 'athens' }): void {
+    enablePause(this);
     this.entering = false;
     this.target = null;
     this.sky = new SkyLayer(this, HORIZON);
@@ -46,8 +48,8 @@ export class TownScene extends Phaser.Scene {
     // ─── Toà nhà ───
     const gym = this.add.image(GYM_DOOR_X, HORIZON + 12, 'bld-gym').setOrigin(0.5, 1).setDepth(-40).setInteractive({ useHandCursor: true });
     const athens = this.add.image(ATHENS_DOOR_X, HORIZON + 12, 'bld-athens').setOrigin(0.5, 1).setDepth(-40).setInteractive({ useHandCursor: true });
-    txt(this, GYM_DOOR_X, HORIZON - 132, 'WHEYSTATION', 22, C.white).setOrigin(0.5).setDepth(-39);
-    txt(this, ATHENS_DOOR_X, HORIZON - 148, 'ATHENS', 22, C.dark).setOrigin(0.5).setDepth(-39);
+    txt(this, GYM_DOOR_X + 18, HORIZON - 116, 'WHEYSTATION', 20, C.white).setOrigin(0.5).setDepth(-39);
+    txt(this, ATHENS_DOOR_X, HORIZON - 150, 'ATHENS', 20, C.dark).setOrigin(0.5).setDepth(-39);
     txt(this, GYM_DOOR_X, HORIZON + 18, '▲ GYM', 18, C.cream, { stroke: '#0b0716', strokeThickness: 3 }).setOrigin(0.5, 0).setDepth(-39);
     txt(this, ATHENS_DOOR_X, HORIZON + 18, '▲ HỌC', 18, C.cream, { stroke: '#0b0716', strokeThickness: 3 }).setOrigin(0.5, 0).setDepth(-39);
     gym.on('pointerup', () => this.goTo(GYM_DOOR_X, WALK_Y_MIN, 'gym'));
@@ -92,7 +94,7 @@ export class TownScene extends Phaser.Scene {
     if (game.day.philosopherBadge) txt(this, 136, 42, 'Triết gia', 18, C.green, { stroke: '#0b0716', strokeThickness: 3 }).setDepth(80);
     new Button(this, GAME_WIDTH - 90, 30, 'CHỈ SỐ', () => this.showStats(), { w: 150, h: 40, size: 20 });
     if (game.newGamePlus > 0) txt(this, GAME_WIDTH - 170, 16, `NG+${game.newGamePlus}`, 20, C.gold, { stroke: '#0b0716', strokeThickness: 3 }).setOrigin(1, 0).setDepth(80);
-    this.prompt = txt(this, GAME_WIDTH / 2, WALK_Y_MAX + 30, '', 22, C.gold, { stroke: '#0b0716', strokeThickness: 4 }).setOrigin(0.5).setDepth(80);
+    this.prompt = txt(this, GAME_WIDTH / 2, WALK_Y_MIN - 46, '', 22, C.gold, { stroke: '#0b0716', strokeThickness: 4 }).setOrigin(0.5).setDepth(80);
 
     this.setupWeather();
 
@@ -257,15 +259,12 @@ export class TownScene extends Phaser.Scene {
     m.root.add(txt(this, -330, -150, 'THỂ CHẤT (WheyStation)', 22, C.orange));
     m.root.add(txt(this, 20, -150, 'KIẾN THỨC (Athens)', 22, C.sky));
     PHYSICAL_KEYS.forEach((k, i) => {
-      m.root.add(new StatBar(this, -330, -110 + i * 36, PHYSICAL_LABEL[k], game.stats.physical(k), BALANCE.physicalMin[k], C.orangeHex, 260));
+      m.root.add(new StatBar(this, -330, -110 + i * 36, PHYSICAL_LABEL[k], game.stats.physical(k), 0, C.orangeHex, 260));
     });
     KNOWLEDGE_KEYS.forEach((k, i) => {
-      m.root.add(new StatBar(this, 20, -110 + i * 36, KNOWLEDGE_LABEL[k].length > 10 ? KNOWLEDGE_LABEL[k].slice(0, 9) + '.' : KNOWLEDGE_LABEL[k], game.stats.knowledge(k), BALANCE.knowledgeMin, C.skyHex, 260));
+      m.root.add(new StatBar(this, 20, -110 + i * 36, KNOWLEDGE_LABEL[k].length > 10 ? KNOWLEDGE_LABEL[k].slice(0, 9) + '.' : KNOWLEDGE_LABEL[k], game.stats.knowledge(k), 0, C.skyHex, 260));
     });
-    const def = game.stats.deficits();
-    m.root.add(
-      txt(this, 0, 125, def.length === 0 ? '✔ Đã đủ mọi ngưỡng cho thử thách cuối!' : `Còn ${def.length} chỉ số chưa đạt ngưỡng (vạch trắng).`, 20, def.length === 0 ? C.green : C.orange).setOrigin(0.5),
-    );
+    m.root.add(txt(this, 0, 125, 'Thử thách cuối sẽ dùng đến tất cả 12 chỉ số. Tích luỹ bao nhiêu là đủ — hãy tự khám phá!', 18, C.cream).setOrigin(0.5));
     m.root.add(txt(this, 0, 150, `Tổng đã dùng: Gym ${game.totalGym} · Học ${game.totalStudy} · Combo bonus: ${Math.floor(game.comboCount / BALANCE.combosPerBonus)}`, 18, C.gray).setOrigin(0.5));
     m.root.add(new Button(this, 0, 190, 'ĐÓNG', () => m.close(), { w: 180, h: 42, size: 20 }));
   }

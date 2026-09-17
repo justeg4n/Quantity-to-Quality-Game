@@ -6,6 +6,7 @@ import { ensureAvatar } from '../gfx/Avatar';
 import { game } from '../systems/GameState';
 import { QuizEngine } from '../systems/QuizEngine';
 import { Sfx } from '../systems/Sfx';
+import { enablePause } from './PauseScene';
 import { bindNumberKeys } from '../ui/ActionInput';
 import { QuizPanel } from '../ui/QuizPanel';
 import { Button, txt } from '../ui/Widgets';
@@ -23,6 +24,7 @@ export class QuizScene extends Phaser.Scene {
   }
 
   create(data: { category: KnowledgeKey }): void {
+    enablePause(this);
     this.category = data.category;
     this.answers = [];
     this.questions = QuizEngine.draw(this.category, BALANCE.questionsPerStudy, game.seenQuestions);

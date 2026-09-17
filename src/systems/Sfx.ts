@@ -9,7 +9,7 @@ class SfxImpl {
   private master: GainNode | null = null;
   private bgmTimer: number | null = null;
   private bgmGain: GainNode | null = null;
-  muted = false;
+  muted = (() => { try { return localStorage.getItem('q2q-muted') === '1'; } catch { return false; } })();
   private bgmStep = 0;
 
   private ensure(): AudioContext | null {
@@ -18,7 +18,7 @@ class SfxImpl {
       const AC = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
       this.ctx = new AC();
       this.master = this.ctx.createGain();
-      this.master.gain.value = 0.35;
+      this.master.gain.value = this.muted ? 0 : 0.35;
       this.master.connect(this.ctx.destination);
     } catch {
       this.ctx = null;
@@ -34,6 +34,11 @@ class SfxImpl {
   setMuted(m: boolean): void {
     this.muted = m;
     if (this.master) this.master.gain.value = m ? 0 : 0.35;
+    try {
+      localStorage.setItem('q2q-muted', m ? '1' : '0');
+    } catch {
+      /* ignore */
+    }
   }
 
   toggleMute(): boolean {
