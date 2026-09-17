@@ -346,14 +346,14 @@ export class PointsHud extends Phaser.GameObjects.Container {
     this.dayText = txt(scene, 0, 0, '', 24, C.gold);
     this.add(this.dayText);
     for (let i = 0; i < max; i++) {
-      const ic = scene.add.image(150 + i * 30, 12, 'icon-hourglass');
+      const ic = scene.add.image(140 + i * 28, 12, 'icon-hourglass');
       this.icons.push(ic);
       this.add(ic);
     }
     scene.add.existing(this);
     this.setDepth(80);
   }
-  set(day: number, pointsLeft: number, totalDays = 10): void {
+  set(day: number, pointsLeft: number, totalDays = 5): void {
     this.dayText.setText(`NGÀY ${day}/${totalDays}`);
     this.icons.forEach((ic, i) => ic.setTexture(i < pointsLeft ? 'icon-hourglass' : 'icon-hourglass-empty'));
   }

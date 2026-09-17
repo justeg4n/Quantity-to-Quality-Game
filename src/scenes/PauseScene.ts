@@ -107,19 +107,19 @@ export class PauseScene extends Phaser.Scene {
   private showHelp(): void {
     const m = modal(this, GAME_WIDTH - 120, GAME_HEIGHT - 80, 100);
     const lines = [
-      'MỤC TIÊU: 10 ngày rèn luyện, mỗi ngày 5 ĐIỂM ĐẦU NGÀY (đồng hồ cát). Phải tiêu HẾT mới sang ngày.',
+      `MỤC TIÊU: ${BALANCE.totalDays} ngày rèn luyện, mỗi ngày ${BALANCE.pointsPerDay} ĐIỂM ĐẦU NGÀY (đồng hồ cát). Phải tiêu HẾT mới sang ngày.`,
       '',
       'WHEYSTATION: chọn nhóm cơ → mini-game 6 rep → +1 điểm nhóm cơ. Mash: bấm SPACE liên tục;',
       '   Timing: bấm SPACE khi con trỏ vào vùng xanh. 3 Perfect liên tiếp = combo, 2 combo = +1 phụ trội.',
       'ATHENS: chọn khối kiến thức → 2 câu trắc nghiệm → +1 điểm khối. Đúng cả 2 → huy hiệu Triết gia.',
       '',
-      'THỬ THÁCH CUỐI (sau ngày 10) — 3 pha. Pha 3 dùng chính chỉ số đã tích luỹ:',
+      `THỬ THÁCH CUỐI (sau ngày ${BALANCE.totalDays}) — 3 pha. Pha 3 dùng chính chỉ số đã tích luỹ:`,
       '   Push-up ×3 (−Ngực, Vai, Tay) · Lat Pull Down ×3 (−Lưng, Tay) · Squat ×3 (−Chân, Bụng) + đề 5 câu.',
       '   Tích luỹ bao nhiêu là đủ? Hãy tự khám phá — thua sẽ được hé lộ chỉ số nào còn thiếu.',
       '',
       'Điều khiển: ← → / WASD di chuyển · SPACE / E vào nhà · SPACE hoặc chạm nút vàng để tập · 1–4 chọn đáp án · Esc menu.',
     ];
-    m.root.add(txt(this, -(GAME_WIDTH - 120) / 2 + 24, -(GAME_HEIGHT - 80) / 2 + 20, lines.join('\n'), 19, C.cream, { lineSpacing: 5 }));
+    m.root.add(txt(this, -(GAME_WIDTH - 120) / 2 + 24, -(GAME_HEIGHT - 80) / 2 + 20, lines.join('\n'), 19, C.cream, { lineSpacing: 3, wordWrap: { width: GAME_WIDTH - 120 - 48 } }));
     m.root.add(new Button(this, 0, (GAME_HEIGHT - 80) / 2 - 40, 'ĐÓNG', () => m.close(), { w: 200 }));
   }
 }

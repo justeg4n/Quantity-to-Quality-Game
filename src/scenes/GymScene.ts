@@ -38,9 +38,9 @@ export class GymScene extends Phaser.Scene {
     this.add.rectangle(0, 196, GAME_WIDTH, 8, 0x0b0716).setOrigin(0);
     this.add.tileSprite(0, 204, GAME_WIDTH, GAME_HEIGHT - 204, 'tile-gymfloor').setOrigin(0);
     // đèn trần
-    for (let i = 0; i < 5; i++) {
-      this.add.rectangle(120 + i * 180, 20, 60, 8, 0xffd166).setOrigin(0.5);
-      this.add.rectangle(120 + i * 180, 24, 90, 60, 0xffd166, 0.06).setOrigin(0.5, 0);
+    for (const lx of [340, 620]) {
+      this.add.rectangle(lx, 64, 60, 8, 0xffd166).setOrigin(0.5);
+      this.add.rectangle(lx, 68, 90, 60, 0xffd166, 0.06).setOrigin(0.5, 0);
     }
     // poster động lực
     const poster = this.add.graphics();
@@ -79,7 +79,7 @@ export class GymScene extends Phaser.Scene {
     this.time.addEvent({ delay: 700, loop: true, callback: () => this.avatar.setTexture(ensureAvatar(this, game.stats.stats, this.avatar.texture.key.includes('flex') ? 'idle' : 'flex', 2)) });
 
     // ─── HUD ───
-    this.hud = new PointsHud(this, 16, 12);
+    this.hud = new PointsHud(this, 16, 12, BALANCE.pointsPerDay);
     this.hud.set(game.day.currentDay, game.pointsLeft, BALANCE.totalDays);
     new Button(this, GAME_WIDTH - 110, 30, '◀ QUẢNG TRƯỜNG', () => this.leave(), { w: 200, h: 40, size: 20 });
 
@@ -133,26 +133,26 @@ export class GymScene extends Phaser.Scene {
       return;
     }
     const ex = EXERCISES[k];
-    const m = modal(this, 520, 260);
-    m.root.add(this.add.image(-200, -40, `machine-${k}`).setScale(2));
-    m.root.add(txt(this, -120, -100, `${ex.name}  —  nhóm cơ ${PHYSICAL_LABEL[k]}`, 26, C.gold));
+    const m = modal(this, 640, 280);
+    m.root.add(this.add.image(-250, -50, `machine-${k}`).setScale(2));
+    m.root.add(txt(this, -170, -115, `${ex.name}  —  nhóm cơ ${PHYSICAL_LABEL[k]}`, 26, C.gold));
     m.root.add(
       txt(
         this,
-        -120,
-        -64,
+        -170,
+        -80,
         ex.mode === 'mash'
-          ? `Cơ chế MASH: bấm SPACE liên tục, đủ ${ex.mashPerRep} lần trong ${(ex.repWindowMs! / 1000).toFixed(1)}s = 1 rep.\nBấm nhanh → PERFECT. Cần ${ex.repsRequired} rep.`
-          : `Cơ chế TIMING: con trỏ chạy trên thanh tạ, bấm SPACE\nkhi vào vùng xanh (PERFECT) ở giữa. Cần ${ex.repsRequired} rep.`,
+          ? `Cơ chế MASH: bấm SPACE liên tục, đủ ${ex.mashPerRep} lần trong ${(ex.repWindowMs! / 1000).toFixed(1)}s = 1 rep. Bấm nhanh → PERFECT. Cần đủ ${ex.repsRequired} rep.`
+          : `Cơ chế TIMING: con trỏ chạy trên thanh tạ, bấm SPACE khi vào vùng xanh (PERFECT) ở giữa. Cần đủ ${ex.repsRequired} rep.`,
         18,
         C.cream,
-        { lineSpacing: 4 },
+        { lineSpacing: 4, wordWrap: { width: 460 } },
       ),
     );
-    m.root.add(txt(this, -120, 0, `Hiện tại: ${PHYSICAL_LABEL[k]} = ${game.stats.physical(k)}`, 20, C.orange));
-    m.root.add(txt(this, -120, 26, 'Tốn 1 điểm đầu ngày', 20, C.red));
-    m.root.add(new Button(this, -110, 85, 'TẬP  (−1 ⌛)', () => { m.close(); this.startExercise(k); }, { w: 200, h: 46, fill: C.greenHex, color: C.dark }));
-    m.root.add(new Button(this, 110, 85, 'HUỶ', () => m.close(), { w: 200, h: 46 }));
+    m.root.add(txt(this, -170, 2, `Hiện tại: ${PHYSICAL_LABEL[k]} = ${game.stats.physical(k)}`, 20, C.orange));
+    m.root.add(txt(this, -170, 28, 'Tốn 1 điểm đầu ngày', 20, C.red));
+    m.root.add(new Button(this, -115, 95, 'TẬP  (−1 ⌛)', () => { m.close(); this.startExercise(k); }, { w: 210, h: 46, fill: C.greenHex, color: C.dark }));
+    m.root.add(new Button(this, 115, 95, 'HUỶ', () => m.close(), { w: 210, h: 46 }));
   }
 
   private startExercise(k: PhysicalKey): void {

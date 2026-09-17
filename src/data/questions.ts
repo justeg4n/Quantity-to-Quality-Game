@@ -316,7 +316,7 @@ export const QUESTIONS: QuizQuestion[] = [
   {
     id: 'qh-7',
     category: 'quanHeLuongChat',
-    question: 'Trong một ngày ở game này, bạn có 5 điểm để chia cho Gym và Học. Việc phân bổ 5 điểm này mỗi ngày là:',
+    question: 'Trong một ngày ở game này, bạn có 10 điểm để chia cho Gym và Học. Việc phân bổ 10 điểm này mỗi ngày là:',
     options: [
       'Bước nhảy về chất',
       'Sự tích luỹ về lượng cho các chỉ số',
@@ -540,7 +540,7 @@ export const QUESTIONS: QuizQuestion[] = [
     ],
     correctIndex: 1,
     explanation: 'Nhận thức đúng điểm nút để chủ động, kịp thời thực hiện bước nhảy — không nóng vội, không trì trệ.',
-    gymExample: 'Đến ngày 10 trong game, dù lo lắng, bạn phải bước vào thử thách cuối — đó là bước nhảy.',
+    gymExample: 'Đến ngày cuối trong game, dù lo lắng, bạn phải bước vào thử thách cuối — đó là bước nhảy.',
   },
 
   // ───────────────────────── VẬN DỤNG ─────────────────────────

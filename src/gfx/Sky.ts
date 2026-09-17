@@ -28,7 +28,7 @@ export function skyColors(t: number): { top: number; bottom: number } {
 }
 
 /** Thời điểm trong ngày theo số điểm còn lại (5 -> bình minh, 0 -> hoàng hôn) */
-export function timeFromPoints(pointsLeft: number, pointsPerDay = 5): number {
+export function timeFromPoints(pointsLeft: number, pointsPerDay = 10): number {
   return ((pointsPerDay - pointsLeft) / pointsPerDay) * 0.66;
 }
 

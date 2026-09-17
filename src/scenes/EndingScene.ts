@@ -56,15 +56,15 @@ export class EndingScene extends Phaser.Scene {
 
     // cột trái: thống kê & lý do
     let y = py0 + 96;
-    txt(this, px0 + 24, y, `Tổng 10 ngày:  🏋 Gym ${game.totalGym}  ·  📖 Học ${game.totalStudy}  ·  Lần thử boss: ${game.bossAttempts}${game.newGamePlus ? `  ·  NG+${game.newGamePlus}` : ''}`, 19, C.cream).setDepth(21);
+    txt(this, px0 + 24, y, `Tổng ${BALANCE.totalDays} ngày:  🏋 Gym ${game.totalGym}  ·  📖 Học ${game.totalStudy}  ·  Lần thử boss: ${game.bossAttempts}${game.newGamePlus ? `  ·  NG+${game.newGamePlus}` : ''}`, 19, C.cream).setDepth(21);
     y += 28;
     if (!won && result.reasons.length) {
       txt(this, px0 + 24, y, 'Chưa đạt ngưỡng / lý do:', 18, C.orange).setDepth(21);
       y += 24;
-      txt(this, px0 + 24, y, result.reasons.map((r) => `• ${r}`).join('\n'), 17, C.red, { lineSpacing: 2 }).setDepth(21);
-      y += Math.min(4, result.reasons.length) * 21 + 8;
+      const rt = txt(this, px0 + 24, y, result.reasons.join('   ·   '), 17, C.red, { wordWrap: { width: 560 }, lineSpacing: 2 }).setDepth(21);
+      y += rt.height + 8;
     } else if (won) {
-      txt(this, px0 + 24, y, 'Mọi chỉ số đều đạt ngưỡng. Sự tích luỹ 10 ngày đã tạo nên bước nhảy!', 18, C.green).setDepth(21);
+      txt(this, px0 + 24, y, `Mọi chỉ số đều đạt ngưỡng. Sự tích luỹ ${BALANCE.totalDays} ngày đã tạo nên bước nhảy!`, 18, C.green).setDepth(21);
       y += 28;
     }
     // huy hiệu
@@ -99,9 +99,9 @@ export class EndingScene extends Phaser.Scene {
     if (!won) {
       new Button(this, 190, by, 'THỬ LẠI THỬ THÁCH', () => this.retryBoss(), { w: 250, h: 46, fill: C.redHex, size: 20 }).setDepth(30);
     } else {
-      new Button(this, 190, by, 'HỒI KÝ 10 NGÀY', () => this.showDiary(), { w: 250, h: 46, fill: C.blueHex, size: 20 }).setDepth(30);
+      new Button(this, 190, by, `HỒI KÝ ${BALANCE.totalDays} NGÀY`, () => this.showDiary(), { w: 250, h: 46, fill: C.blueHex, size: 20 }).setDepth(30);
     }
-    new Button(this, GAME_WIDTH / 2, by, won ? 'NEW GAME+ (giữ huy hiệu)' : 'HỒI KÝ 10 NGÀY', () => (won ? this.newGamePlus() : this.showDiary()), { w: 270, h: 46, size: 20 }).setDepth(30);
+    new Button(this, GAME_WIDTH / 2, by, won ? 'NEW GAME+ (giữ huy hiệu)' : `HỒI KÝ ${BALANCE.totalDays} NGÀY`, () => (won ? this.newGamePlus() : this.showDiary()), { w: 270, h: 46, size: 20 }).setDepth(30);
     new Button(this, GAME_WIDTH - 190, by, won ? 'VỀ MÀN HÌNH CHÍNH' : 'NEW GAME+ (giữ huy hiệu)', () => (won ? this.toTitle() : this.newGamePlus()), { w: 250, h: 46, size: 20 }).setDepth(30);
 
     this.cameras.main.fadeIn(600, 0, 0, 0);
@@ -132,7 +132,7 @@ export class EndingScene extends Phaser.Scene {
 
   private showDiary(): void {
     const m = modal(this, 800, 460);
-    m.root.add(txt(this, 0, -210, 'HỒI KÝ 10 NGÀY', 30, C.gold).setOrigin(0.5));
+    m.root.add(txt(this, 0, -210, `HỒI KÝ ${BALANCE.totalDays} NGÀY`, 30, C.gold).setOrigin(0.5));
     const lines = game.day.log.length ? game.day.log.map((r) => r.diary) : ['(Chưa có nhật ký)'];
     m.root.add(txt(this, -380, -170, lines.join('\n'), 17, C.cream, { wordWrap: { width: 760 }, lineSpacing: 3 }));
     m.root.add(txt(this, 0, 150, `${BALANCE.totalDays} ngày · ${BALANCE.totalDays * BALANCE.pointsPerDay} điểm đầu ngày`, 15, C.gray).setOrigin(0.5));

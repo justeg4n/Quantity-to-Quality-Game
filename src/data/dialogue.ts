@@ -1,4 +1,5 @@
 /** Thoại NPC và flavor text (mục 6–7 tài liệu thiết kế) */
+import { BALANCE } from './balance';
 
 export const TRAINER_LINES: string[] = [
   'Chào mừng tới WheyStation! Tạ không tự nâng đâu, bắt đầu thôi!',
@@ -23,17 +24,19 @@ export const PROFESSOR_LINES: string[] = [
   'Ta nghe nói huấn luyện viên bên kia hay hét "giữ form". Hắn nói đúng: hình thức tốt mới có nội dung tốt.',
   'Hai câu đúng liên tiếp — ngươi sẽ được huy hiệu Triết gia trong ngày hôm nay.',
   'Đọc kỹ đáp án sai. Sai là nơi tri thức về chất xuất hiện.',
-  'Ngày 10 sắp tới. Ngươi sẵn sàng cho bước nhảy chưa?',
+  'Ngày cuối sắp tới. Ngươi sẵn sàng cho bước nhảy chưa?',
 ];
 
 /** Flavor text cuối ngày theo tỉ lệ gym/học trong ngày */
 export function dayFlavor(gym: number, study: number): string {
-  if (gym === 5) return 'Một ngày toàn tạ! Cơ bắp lên tiếng, còn sách thì im lặng chờ.';
-  if (study === 5) return 'Một ngày toàn sách! Đầu óc sáng bừng, tạ thì phủ bụi.';
-  if (gym >= 4) return 'Nghiêng về WheyStation. Huấn luyện viên hài lòng, giáo sư nhíu mày nhẹ.';
-  if (study >= 4) return 'Nghiêng về Athens. Giáo sư gật gù, huấn luyện viên xoa tạ chờ.';
-  if (gym === 3) return 'Hơi nghiêng về gym, nhưng vẫn có chỗ cho tri thức. Ổn đấy!';
-  if (study === 3) return 'Hơi nghiêng về học, nhưng cơ bắp không bị bỏ rơi. Ổn đấy!';
+  const total = gym + study || 1;
+  const g = gym / total;
+  if (g === 1) return 'Một ngày toàn tạ! Cơ bắp lên tiếng, còn sách thì im lặng chờ.';
+  if (g === 0) return 'Một ngày toàn sách! Đầu óc sáng bừng, tạ thì phủ bụi.';
+  if (g >= 0.75) return 'Nghiêng hẳn về WheyStation. Huấn luyện viên hài lòng, giáo sư nhíu mày nhẹ.';
+  if (g <= 0.25) return 'Nghiêng hẳn về Athens. Giáo sư gật gù, huấn luyện viên xoa tạ chờ.';
+  if (g > 0.5) return 'Hơi nghiêng về gym, nhưng vẫn có chỗ cho tri thức. Ổn đấy!';
+  if (g < 0.5) return 'Hơi nghiêng về học, nhưng cơ bắp không bị bỏ rơi. Ổn đấy!';
   return 'Cân bằng hoàn hảo — thân thể và tinh thần cùng tiến.';
 }
 
@@ -44,7 +47,7 @@ export function dayDiary(day: number, gym: number, study: number, weather: strin
   if (gym > 0) parts.push(`${gym} lượt tập ở WheyStation`);
   if (study > 0) parts.push(`${study} lượt học ở Athens`);
   const act = parts.join(' và ');
-  const mood = [
+  const moods = [
     'Mệt nhưng vui.',
     'Cảm thấy mình đang tích luỹ điều gì đó.',
     'Chưa thấy khác biệt rõ rệt, nhưng tin là sẽ có bước nhảy.',
@@ -55,7 +58,9 @@ export function dayDiary(day: number, gym: number, study: number, weather: strin
     'Mỗi điểm tiêu đi là một hạt cát trong đồng hồ.',
     'Sắp tới ngày quyết định rồi.',
     'Ngày cuối. Lượng đã đủ chưa? Mai sẽ biết.',
-  ][Math.min(day - 1, 9)];
+  ];
+  const idx = Math.round(((day - 1) / Math.max(1, BALANCE.totalDays - 1)) * (moods.length - 1));
+  const mood = moods[Math.min(moods.length - 1, Math.max(0, idx))];
   return `Ngày ${day}: ${w} ${act}. ${mood}`;
 }
 
@@ -68,7 +73,7 @@ export const BOSS_LINES = {
   phase2: 'PHA 2 — ĐẤU TRANH GIỮA CÁC MẶT ĐỐI LẬP',
   phase2Hint: 'Bên trái: bấm SPACE khi con trỏ vào vùng xanh. Bên phải: chọn đáp án bằng chuột hoặc phím 1–4.',
   phase3: 'PHA 3 — PHỦ ĐỊNH CỦA PHỦ ĐỊNH',
-  phase3Hint: 'Dùng chính thành quả 10 ngày: mỗi lần tập trừ 1 điểm nhóm cơ liên quan. Giải đúng cả 5 câu.',
-  win: 'Lượng đã đủ. Chất đã đổi. Ngươi không còn là kẻ bước vào đây 10 ngày trước.',
+  phase3Hint: 'Dùng chính thành quả những ngày rèn luyện: mỗi lần tập trừ 1 điểm nhóm cơ liên quan. Giải đúng cả 5 câu.',
+  win: 'Lượng đã đủ. Chất đã đổi. Ngươi không còn là kẻ bước vào đây ngày đầu tiên.',
   lose: 'Lượng chưa đủ để đổi chất. Nhưng phủ định không phải là kết thúc — hãy quay lại.',
 };

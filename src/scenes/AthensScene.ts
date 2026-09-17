@@ -33,8 +33,8 @@ export class AthensScene extends Phaser.Scene {
     this.add.tileSprite(0, 204, GAME_WIDTH, GAME_HEIGHT - 204, 'tile-marble').setOrigin(0);
     for (const cx of [60, 330, 630, 900]) this.add.image(cx, 200, 'column').setOrigin(0.5, 1).setScale(1, 3.5);
     this.add.image(GAME_WIDTH / 2, 190, 'bust').setOrigin(0.5, 1).setScale(1.5);
-    txt(this, GAME_WIDTH / 2, 30, 'A T H E N S', 30, C.dark).setOrigin(0.5);
-    txt(this, GAME_WIDTH / 2, 62, '"Lượng đổi — Chất đổi"', 20, C.blue).setOrigin(0.5);
+    txt(this, GAME_WIDTH / 2, 64, 'A T H E N S', 30, C.dark).setOrigin(0.5);
+    txt(this, GAME_WIDTH / 2, 94, '"Lượng đổi — Chất đổi"', 20, C.blue).setOrigin(0.5);
 
     // ─── Giáo sư ───
     this.add.image(90, 330, 'npc-professor').setOrigin(0.5, 1).setScale(1.6);
@@ -57,15 +57,14 @@ export class AthensScene extends Phaser.Scene {
       new StatBar(this, px0 + 4, 262 + i * 30, KNOWLEDGE_SHORT[k], game.stats.knowledge(k), 0, C.skyHex, 210);
     });
     const av = this.add.image(px0 + 140, 520, ensureAvatar(this, game.stats.stats, 'idle', 2)).setOrigin(0.5, 1);
-    this.add.image(px0 + 140, 372, 'icon-book');
     if (game.day.philosopherBadge) {
-      this.add.image(px0 + 200, 400, 'icon-laurel');
-      txt(this, px0 + 200, 416, 'Triết gia', 16, C.green).setOrigin(0.5, 0);
+      this.add.image(px0 + 215, 462, 'icon-laurel');
+      txt(this, px0 + 215, 478, 'Triết gia', 16, C.green).setOrigin(0.5, 0);
     }
     this.time.addEvent({ delay: 900, loop: true, callback: () => av.setTexture(ensureAvatar(this, game.stats.stats, av.texture.key.includes('idle') ? 'happy' : 'idle', 2)) });
 
     // ─── HUD ───
-    this.hud = new PointsHud(this, 16, 12);
+    this.hud = new PointsHud(this, 16, 12, BALANCE.pointsPerDay);
     this.hud.set(game.day.currentDay, game.pointsLeft, BALANCE.totalDays);
     new Button(this, GAME_WIDTH - 110, 30, '◀ QUẢNG TRƯỜNG', () => this.leave(), { w: 200, h: 40, size: 20 });
 
@@ -96,7 +95,7 @@ export class AthensScene extends Phaser.Scene {
     c.add(this.add.image(-16, -66, 'scroll'));
     c.add(this.add.image(20, -66, 'icon-book'));
     c.add(txt(this, 0, 6, KNOWLEDGE_LABEL[k].toUpperCase(), k === 'diemNutBuocNhay' || k === 'quanHeLuongChat' ? 15 : 20, C.blue).setOrigin(0.5, 0));
-    c.add(txt(this, 0, 28, KNOWLEDGE_DESC[k].length > 26 ? KNOWLEDGE_DESC[k].slice(0, 25) + '…' : KNOWLEDGE_DESC[k], 13, C.dark).setOrigin(0.5, 0));
+    c.add(txt(this, 0, 27, KNOWLEDGE_DESC[k], 12, C.dark, { wordWrap: { width: 126 }, align: 'center' }).setOrigin(0.5, 0));
     const v = game.stats.knowledge(k);
     c.add(txt(this, 50, -92, `${v}`, 20, C.gold, { stroke: '#0b0716', strokeThickness: 3 }).setOrigin(0.5));
     c.setSize(124, 130);
@@ -115,13 +114,13 @@ export class AthensScene extends Phaser.Scene {
     }
     const seen = questionsByCategory(k).filter((q) => game.seenQuestions.has(q.id)).length;
     const total = questionsByCategory(k).length;
-    const m = modal(this, 540, 250);
+    const m = modal(this, 600, 260);
     m.root.add(txt(this, 0, -95, `Khối: ${KNOWLEDGE_LABEL[k]}`, 26, C.gold).setOrigin(0.5));
-    m.root.add(txt(this, 0, -60, KNOWLEDGE_DESC[k], 19, C.cream).setOrigin(0.5));
-    m.root.add(txt(this, 0, -28, `Trả lời ${BALANCE.questionsPerStudy} câu trắc nghiệm → +1 điểm khối này.\nĐã gặp ${seen}/${total} câu trong ngân hàng.`, 18, C.cream, { align: 'center' }).setOrigin(0.5));
-    m.root.add(txt(this, 0, 14, `Hiện tại: ${KNOWLEDGE_LABEL[k]} = ${game.stats.knowledge(k)}   ·   Tốn 1 điểm đầu ngày`, 19, C.orange).setOrigin(0.5));
-    m.root.add(new Button(this, -110, 80, 'HỌC  (−1 ⌛)', () => { m.close(); this.startQuiz(k); }, { w: 200, h: 46, fill: C.blueHex }));
-    m.root.add(new Button(this, 110, 80, 'HUỶ', () => m.close(), { w: 200, h: 46 }));
+    m.root.add(txt(this, 0, -62, KNOWLEDGE_DESC[k], 19, C.cream, { wordWrap: { width: 540 }, align: 'center' }).setOrigin(0.5));
+    m.root.add(txt(this, 0, -24, `Trả lời ${BALANCE.questionsPerStudy} câu trắc nghiệm → +1 điểm khối này.\nĐã gặp ${seen}/${total} câu trong ngân hàng.`, 18, C.cream, { align: 'center', wordWrap: { width: 540 } }).setOrigin(0.5));
+    m.root.add(txt(this, 0, 20, `Hiện tại: ${KNOWLEDGE_LABEL[k]} = ${game.stats.knowledge(k)}   ·   Tốn 1 điểm đầu ngày`, 19, C.orange, { wordWrap: { width: 540 }, align: 'center' }).setOrigin(0.5));
+    m.root.add(new Button(this, -115, 85, 'HỌC  (−1 ⌛)', () => { m.close(); this.startQuiz(k); }, { w: 210, h: 46, fill: C.blueHex }));
+    m.root.add(new Button(this, 115, 85, 'HUỶ', () => m.close(), { w: 210, h: 46 }));
   }
 
   private startQuiz(k: KnowledgeKey): void {

@@ -153,7 +153,7 @@ export class BossScene extends Phaser.Scene {
     m.root.add(this.add.image(-290, -20, 'boss-1').setScale(0.6));
     m.root.add(txt(this, 40, -90, 'VÒNG XOÁY BIỆN CHỨNG', 30, C.red).setOrigin(0.5));
     m.root.add(txt(this, 40, -30, BOSS_LINES.intro[0], 20, C.cream, { wordWrap: { width: 480 }, align: 'center' }).setOrigin(0.5));
-    m.root.add(txt(this, 40, 30, `Lần thử: ${game.bossAttempts}   ·   3 pha   ·   Pha cuối sẽ tiêu hao chính thành quả 10 ngày của ngươi.`, 15, C.gray, { wordWrap: { width: 500 }, align: 'center' }).setOrigin(0.5));
+    m.root.add(txt(this, 40, 30, `Lần thử: ${game.bossAttempts}   ·   3 pha   ·   Pha cuối sẽ tiêu hao chính thành quả những ngày rèn luyện của ngươi.`, 15, C.gray, { wordWrap: { width: 500 }, align: 'center' }).setOrigin(0.5));
     m.root.add(new Button(this, 40, 90, 'NGHÊNH CHIẾN', () => { m.close(); this.startPhase1(); }, { w: 240, h: 46, fill: C.redHex }));
   }
 
@@ -617,7 +617,7 @@ export class BossScene extends Phaser.Scene {
       if (!physOk) reasons.push('Chưa hoàn thành đủ 3 bài tập ×3');
       if (gaveUp) reasons.push('Đã bỏ cuộc');
     }
-    // khôi phục chỉ số 10 ngày (phần tiêu hao chỉ diễn ra trong trận)
+    // khôi phục chỉ số đã tích luỹ (phần tiêu hao chỉ diễn ra trong trận)
     game.stats.stats = this.snapshot;
     game.lastBossResult = { won, reasons };
     game.phase = 'ended';

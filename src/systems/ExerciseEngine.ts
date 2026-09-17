@@ -25,7 +25,7 @@ export const TIMING_ZONES = { goodMin: 0.3, goodMax: 0.7, perfectMin: 0.44, perf
  * Logic mini-game bài tập, độc lập với Phaser (mục 4 tài liệu thiết kế).
  * - mash: bấm đủ `mashPerRep` lần trong `repWindowMs`. Nhanh => Perfect, kịp => Good, hết giờ => Bad (vẫn tính rep).
  * - timing: con trỏ chạy qua lại; bấm trong vùng Perfect/Good/ngoài => Perfect/Good/Bad. Mỗi lần bấm = 1 rep.
- * - 3 Perfect liên tiếp => combo (rep cuối tự hoàn thành sớm). 2 Bad liên tiếp => cảnh báo, không phạt.
+ * - 3 Perfect liên tiếp => combo (2 combo => +1 điểm phụ trội). 2 Bad liên tiếp => cảnh báo, không phạt.
  */
 export class ExerciseEngine {
   readonly mode: ExerciseMode;
@@ -142,10 +142,8 @@ export class ExerciseEngine {
       this.comboAchieved = true;
       this.listeners.combo?.();
     }
-    // Combo x1.5: rep cuối tự hoàn thành sớm (chỉ cần repsRequired - 1 rep thực)
-    const needed = this.comboAchieved ? this.repsRequired - 1 : this.repsRequired;
-    if (this.reps >= needed) {
-      this.reps = this.repsRequired;
+    // Luôn phải tập đủ số rep; combo chỉ cộng điểm phụ trội (2 combo => +1)
+    if (this.reps >= this.repsRequired) {
       this.done = true;
       this.listeners.done?.({
         reps: this.reps,

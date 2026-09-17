@@ -1,7 +1,7 @@
 # Quantity to Quality — WheyStation vs Athens
 
-Game pixel 2D mô phỏng **quy luật Lượng – Chất** (phép biện chứng duy vật): 10 ngày rèn luyện
-thể chất tại phòng gym **WheyStation** và tri thức tại học viện **Athens**, kết thúc bằng trận
+Game pixel 2D mô phỏng **quy luật Lượng – Chất** (phép biện chứng duy vật): 5 ngày rèn luyện
+thể chất tại phòng gym **WheyStation** và tri thức tại học viện **Athens** (mỗi ngày 10 điểm), kết thúc bằng trận
 boss 3 pha **"Vòng xoáy biện chứng"**.
 
 > Phaser 3 · TypeScript · Vite · deploy tĩnh trên Vercel. Không cần backend; tiến trình lưu bằng `localStorage`.
@@ -21,10 +21,10 @@ Yêu cầu Node.js ≥ 18.
 
 | | |
 |---|---|
-| Thời gian | 10 ngày × 5 điểm đầu ngày = **50 điểm**. Bắt buộc tiêu hết điểm mới được sang ngày. |
+| Thời gian | 5 ngày × 10 điểm đầu ngày = **50 điểm**. Bắt buộc tiêu hết điểm mới được sang ngày. |
 | WheyStation | Chọn 1 trong 6 nhóm cơ → mini-game **6 rep** (Mash: bấm Space liên tục · Timing: canh con trỏ vào vùng xanh) → **+1** điểm nhóm cơ. Nhân vật pixel to dần đúng nhóm cơ đã tập. |
 | Athens | Chọn 1 trong 6 khối kiến thức → **2 câu trắc nghiệm** (48 câu trong ngân hàng) → **+1** điểm khối đó, hiện đáp án + giải thích + ví dụ gym khi sai. |
-| Combo | 3 rep Perfect liên tiếp → combo (rep cuối tự hoàn thành); 2 combo → +1 điểm phụ trội. Đúng cả 2 câu → huy hiệu *Triết gia* trong ngày. |
+| Combo | 3 rep Perfect liên tiếp → combo; 2 combo → +1 điểm phụ trội (luôn phải tập đủ 6 rep). Đúng cả 2 câu → huy hiệu *Triết gia* trong ngày. |
 | Boss | **Pha 1** Lượng đổi → Chất đổi (câu hỏi + bùng nổ push-up), **Pha 2** Đấu tranh các mặt đối lập (split-screen timing + quiz đếm giờ), **Pha 3** Phủ định của phủ định (3 bài tập ×3 tiêu hao chỉ số + đề 5 câu). |
 
 ### Công thức thắng/thua — SPOILER (cân bằng lõi — `src/data/balance.ts`)

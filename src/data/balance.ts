@@ -6,10 +6,11 @@ import type { KnowledgeKey, PhysicalKey } from './types';
  *   Ngực>=3, Vai>=3, Lưng>=3, Chân>=3, Bụng>=3, Tay>=6  (21 điểm Gym)
  *   Mỗi khối kiến thức >= 2                             (12 điểm Học)
  *   => 33 / 50 điểm, còn 17 điểm tự do.
+ * 5 ngày × 10 điểm = 50 điểm (đổi từ 10 × 5 theo yêu cầu playtest, tổng không đổi).
  */
 export const BALANCE = {
-  totalDays: 10,
-  pointsPerDay: 5,
+  totalDays: 5,
+  pointsPerDay: 10,
   repsPerWorkout: 6,
   questionsPerStudy: 2,
   bossQuestions: 5,

@@ -37,7 +37,7 @@ export class TownScene extends Phaser.Scene {
     this.entering = false;
     this.target = null;
     this.sky = new SkyLayer(this, HORIZON);
-    this.sky.set(timeFromPoints(game.pointsLeft));
+    this.sky.set(timeFromPoints(game.pointsLeft, BALANCE.pointsPerDay));
 
     // ─── Nền ───
     this.add.tileSprite(0, HORIZON, GAME_WIDTH, GAME_HEIGHT - HORIZON, 'tile-ground').setOrigin(0).setDepth(-50);
@@ -86,7 +86,7 @@ export class TownScene extends Phaser.Scene {
     });
 
     // ─── HUD ───
-    this.hud = new PointsHud(this, 16, 12);
+    this.hud = new PointsHud(this, 16, 12, BALANCE.pointsPerDay);
     this.hud.set(game.day.currentDay, game.pointsLeft, BALANCE.totalDays);
     const weatherLabel = { sun: '☀ Nắng', rain: '☂ Mưa nhẹ', wind: '≋ Gió' }[game.day.weather];
     txt(this, 16, 40, weatherLabel, 20, C.cream, { stroke: '#0b0716', strokeThickness: 4 }).setDepth(80);

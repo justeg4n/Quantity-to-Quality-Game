@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { C, GAME_HEIGHT, GAME_WIDTH, SCENE } from '../config/constants';
+import { BALANCE } from '../data/balance';
 import { ensureAvatar } from '../gfx/Avatar';
 import { SkyLayer } from '../gfx/Sky';
 import { game } from '../systems/GameState';
@@ -45,7 +46,7 @@ export class TitleScene extends Phaser.Scene {
     // Tiêu đề
     const title = txt(this, GAME_WIDTH / 2, 70, 'QUANTITY TO QUALITY', 72, C.gold, { stroke: '#0b0716', strokeThickness: 8 }).setOrigin(0.5);
     txt(this, GAME_WIDTH / 2, 125, 'WHEYSTATION  vs  ATHENS', 32, C.white, { stroke: '#0b0716', strokeThickness: 6 }).setOrigin(0.5);
-    txt(this, GAME_WIDTH / 2, 158, 'Trò chơi mô phỏng quy luật Lượng – Chất  ·  10 ngày  ·  50 điểm  ·  1 thử thách', 20, C.cream, {
+    txt(this, GAME_WIDTH / 2, 158, `Trò chơi mô phỏng quy luật Lượng – Chất  ·  ${BALANCE.totalDays} ngày  ·  ${BALANCE.totalDays * BALANCE.pointsPerDay} điểm  ·  1 thử thách`, 20, C.cream, {
       stroke: '#0b0716',
       strokeThickness: 4,
     }).setOrigin(0.5);
@@ -58,7 +59,7 @@ export class TitleScene extends Phaser.Scene {
       new Button(this, GAME_WIDTH / 2, y, 'TIẾP TỤC', () => this.continueGame(), { w: 300, h: 50, fill: C.blueHex });
       y += 62;
     }
-    new Button(this, GAME_WIDTH / 2, y, hasSave ? 'CHƠI MỚI' : 'BẮT ĐẦU 10 NGÀY', () => this.newGame(hasSave), { w: 300, h: 50 });
+    new Button(this, GAME_WIDTH / 2, y, hasSave ? 'CHƠI MỚI' : `BẮT ĐẦU ${BALANCE.totalDays} NGÀY`, () => this.newGame(hasSave), { w: 300, h: 50 });
     y += 62;
     new Button(this, GAME_WIDTH / 2, y, 'HƯỚNG DẪN', () => this.showHelp(), { w: 300, h: 50 });
 
@@ -120,20 +121,20 @@ export class TitleScene extends Phaser.Scene {
   private showHelp(): void {
     const m = modal(this, GAME_WIDTH - 120, GAME_HEIGHT - 80);
     const lines = [
-      'MỤC TIÊU: Trải qua 10 ngày rèn luyện, mỗi ngày có 5 ĐIỂM ĐẦU NGÀY (đồng hồ cát).',
-      'Phải tiêu HẾT 5 điểm mới được sang ngày mới. Mỗi lượt Tập / Học tốn 1 điểm.',
+      `MỤC TIÊU: Trải qua ${BALANCE.totalDays} ngày rèn luyện, mỗi ngày có ${BALANCE.pointsPerDay} ĐIỂM ĐẦU NGÀY (đồng hồ cát).`,
+      `Phải tiêu HẾT ${BALANCE.pointsPerDay} điểm mới được sang ngày mới. Mỗi lượt Tập / Học tốn 1 điểm.`,
       '',
       'WHEYSTATION (gym): chọn nhóm cơ → mini-game 6 rep (bấm SPACE liên tục hoặc canh thời điểm).',
       '   Hoàn thành → +1 điểm nhóm cơ đó. Nhân vật to dần đúng nhóm cơ đã tập.',
       'ATHENS (học): chọn khối kiến thức → trả lời 2 câu trắc nghiệm → +1 điểm khối đó.',
       '',
-      'NGÀY 11 — THỬ THÁCH CUỐI "VÒNG XOÁY BIỆN CHỨNG" gồm 3 pha, dùng chính thành quả 10 ngày:',
+      `SAU NGÀY ${BALANCE.totalDays} — THỬ THÁCH CUỐI "VÒNG XOÁY BIỆN CHỨNG" gồm 3 pha, dùng chính thành quả đã tích luỹ:`,
       '   mỗi bài tập ở pha cuối tiêu hao điểm các nhóm cơ liên quan, đề thi rút từ mọi khối kiến thức.',
       '   Tích luỹ bao nhiêu là đủ? Hãy tự khám phá — lượng đổi đến đâu thì chất đổi!',
       '',
       'Mẹo: 3 rep Perfect liên tiếp → combo; 2 combo → +1 điểm phụ trội. Đúng cả 2 câu → huy hiệu Triết gia.',
     ];
-    m.root.add(txt(this, -(GAME_WIDTH - 120) / 2 + 24, -(GAME_HEIGHT - 80) / 2 + 20, lines.join('\n'), 21, C.cream, { lineSpacing: 4 }));
+    m.root.add(txt(this, -(GAME_WIDTH - 120) / 2 + 24, -(GAME_HEIGHT - 80) / 2 + 20, lines.join('\n'), 19, C.cream, { lineSpacing: 3, wordWrap: { width: GAME_WIDTH - 120 - 48 } }));
     m.root.add(new Button(this, 0, (GAME_HEIGHT - 80) / 2 - 40, 'ĐÃ HIỂU', () => m.close(), { w: 220 }));
   }
 }

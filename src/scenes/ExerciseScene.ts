@@ -99,11 +99,13 @@ export class ExerciseScene extends Phaser.Scene {
     }
     this.streakText = txt(this, px0 + 125, 200, '', 22, C.gold).setOrigin(0.5, 0);
     txt(this, px0 + 4, 240, 'Chấm điểm rep:', 18, C.gray);
-    txt(this, px0 + 4, 262, '■ PERFECT  ■ GOOD  ■ HỎNG FORM', 17, C.cream);
     const lg = this.add.graphics();
-    lg.fillStyle(C.greenHex, 1).fillRect(px0 + 4, 268, 10, 10);
-    lg.fillStyle(C.goldHex, 1).fillRect(px0 + 88, 268, 10, 10);
-    lg.fillStyle(C.redHex, 1).fillRect(px0 + 158, 268, 10, 10);
+    let lx = px0 + 6;
+    for (const [label, col] of [['PERFECT', C.greenHex], ['GOOD', C.goldHex], ['HỎNG FORM', C.redHex]] as Array<[string, number]>) {
+      lg.fillStyle(col, 1).fillRect(lx, 268, 12, 12);
+      const t = txt(this, lx + 16, 262, label, 17, C.cream);
+      lx += 16 + t.width + 14;
+    }
     this.coachText = txt(this, px0 + 4, 300, 'HLV: Bắt đầu khi sẵn sàng!', 19, C.cream, { wordWrap: { width: 250 } });
     this.updateRepUi();
 
@@ -118,7 +120,7 @@ export class ExerciseScene extends Phaser.Scene {
       .on('combo', () => {
         Sfx.combo();
         floatText(this, 480, 230, 'COMBO x1.5!', C.gold, 36);
-        this.coachText.setText('HLV: COMBO! Rep cuối tự hoàn thành sớm!');
+        this.coachText.setText('HLV: COMBO! Giữ nhịp này tới hết bài!');
         this.cameras.main.flash(200, 255, 209, 102);
       })
       .on('badStreak', () => {
