@@ -31,7 +31,7 @@ export class DayEndScene extends Phaser.Scene {
     this.sky.set(1);
     this.add.tileSprite(0, HORIZON, GAME_WIDTH, GAME_HEIGHT - HORIZON, 'tile-ground').setOrigin(0).setDepth(-50).setTint(0x556677);
     this.add.tileSprite(0, 390, GAME_WIDTH, 110, 'tile-plaza').setOrigin(0).setDepth(-49).setTint(0x778899);
-    drawBackdrop(this, HORIZON, { tint: 0x8899bb, treeY: 56 });
+    drawBackdrop(this, HORIZON, { tint: 0x8899bb, treeY: 42 });
     this.add.image(160, HORIZON + 12, 'bld-gym').setOrigin(0.5, 1).setDepth(-40).setTint(0x8899bb);
     this.add.image(800, HORIZON + 12, 'bld-athens').setOrigin(0.5, 1).setDepth(-40).setTint(0x8899bb);
     for (const lx of [330, 630]) {

@@ -139,9 +139,9 @@ export function drawBackdrop(scene: Phaser.Scene, horizon: number, opts: Backdro
     add(scene.add.image(x, y, 'tree').setOrigin(0.5, 1).setScale(s).setDepth(base + 5));
   }
   for (const x of [300, 660, 480]) {
-    const shadow = scene.add.ellipse(x, horizon + treeY - 6, 34, 8, 0x000000, 0.2).setDepth(base + 4);
+    const shadow = scene.add.ellipse(x, horizon + treeY + 4, 34, 8, 0x000000, 0.2).setDepth(base + 4);
     out.push(shadow);
-    add(scene.add.image(x, horizon + treeY - 4, 'bush').setOrigin(0.5, 1).setDepth(base + 5));
+    add(scene.add.image(x, horizon + treeY + 6, 'bush').setOrigin(0.5, 1).setDepth(base + 5));
   }
   return out;
 }

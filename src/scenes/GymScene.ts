@@ -34,8 +34,10 @@ export class GymScene extends Phaser.Scene {
     game.gymVisits += 1;
 
     // ─── Nội thất ───
-    this.add.rectangle(0, 0, GAME_WIDTH, 200, 0x1d3557).setOrigin(0);
-    this.add.rectangle(0, 196, GAME_WIDTH, 8, 0x0b0716).setOrigin(0);
+    // tường trắng - xanh (đồng bộ mặt tiền WheyStation)
+    this.add.rectangle(0, 0, GAME_WIDTH, 200, 0xeaf2fc).setOrigin(0);
+    this.add.rectangle(0, 176, GAME_WIDTH, 20, 0x2f7fe0).setOrigin(0);
+    this.add.rectangle(0, 196, GAME_WIDTH, 8, 0x1b5fb8).setOrigin(0);
     this.add.tileSprite(0, 204, GAME_WIDTH, GAME_HEIGHT - 204, 'tile-gymfloor').setOrigin(0);
     // đèn trần
     for (const lx of [340, 620]) {
@@ -44,12 +46,12 @@ export class GymScene extends Phaser.Scene {
     }
     // poster động lực
     const poster = this.add.graphics();
-    poster.fillStyle(0xe63946, 1).fillRect(400, 40, 150, 100);
-    poster.fillStyle(0x0b0716, 1).fillRect(406, 46, 138, 88);
-    txt(this, 475, 70, 'NO PAIN', 24, C.red).setOrigin(0.5);
+    poster.fillStyle(0x1b5fb8, 1).fillRect(400, 40, 150, 100);
+    poster.fillStyle(0x2f7fe0, 1).fillRect(406, 46, 138, 88);
+    txt(this, 475, 70, 'NO PAIN', 24, C.white).setOrigin(0.5);
     txt(this, 475, 100, 'NO CHẤT', 24, C.gold).setOrigin(0.5);
     this.add.image(475, 125, 'icon-dumbbell').setScale(0.8);
-    txt(this, GAME_WIDTH / 2, 160, 'W H E Y S T A T I O N', 30, C.white, { stroke: '#0b0716', strokeThickness: 4 }).setOrigin(0.5);
+    txt(this, GAME_WIDTH / 2, 160, 'W H E Y S T A T I O N', 30, C.white, { stroke: '#1b5fb8', strokeThickness: 5 }).setOrigin(0.5);
 
     // ─── HLV ───
     this.add.image(90, 330, 'npc-trainer').setOrigin(0.5, 1).setScale(1.6);

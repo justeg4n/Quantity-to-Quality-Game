@@ -49,8 +49,9 @@ export class ExerciseScene extends Phaser.Scene {
     this.poseB = `${this.muscle}_b` as Pose;
 
     // ─── Nền ───
-    this.add.rectangle(0, 0, GAME_WIDTH, 200, 0x1d3557).setOrigin(0);
-    this.add.rectangle(0, 196, GAME_WIDTH, 8, 0x0b0716).setOrigin(0);
+    this.add.rectangle(0, 0, GAME_WIDTH, 200, 0xeaf2fc).setOrigin(0);
+    this.add.rectangle(0, 176, GAME_WIDTH, 20, 0x2f7fe0).setOrigin(0);
+    this.add.rectangle(0, 196, GAME_WIDTH, 8, 0x1b5fb8).setOrigin(0);
     this.add.tileSprite(0, 204, GAME_WIDTH, GAME_HEIGHT - 204, 'tile-gymfloor').setOrigin(0);
     txt(this, GAME_WIDTH / 2, 22, `${ex.name.toUpperCase()}  ·  ${PHYSICAL_LABEL[this.muscle].toUpperCase()}`, 30, C.gold, { stroke: '#0b0716', strokeThickness: 4 }).setOrigin(0.5, 0);
     txt(
@@ -59,12 +60,12 @@ export class ExerciseScene extends Phaser.Scene {
       56,
       ex.mode === 'mash' ? `Bấm SPACE / chạm liên tục — ${ex.mashPerRep} lần = 1 rep. Nhanh = PERFECT!` : 'Bấm SPACE / chạm khi con trỏ vào vùng XANH ở giữa thanh tạ!',
       20,
-      C.cream,
+      '#123f7a',
     ).setOrigin(0.5, 0);
 
     // ─── Khung TV + video HLV ───
     this.add.image(150, 300, 'tv-frame');
-    txt(this, 150, 138, 'HLV DEMO', 18, C.green).setOrigin(0.5);
+    txt(this, 150, 138, 'HLV DEMO', 18, '#123f7a').setOrigin(0.5);
     // Màn hình TV: vùng 204x236 tại tâm (150, 288); video/poster bị cắt (mask) đúng vùng này
     const screenMask = this.make.graphics({ x: 0, y: 0 }, false);
     screenMask.fillStyle(0xffffff, 1).fillRect(150 - 102, 288 - 118, 204, 236);

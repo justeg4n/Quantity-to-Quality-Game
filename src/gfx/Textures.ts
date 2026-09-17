@@ -275,31 +275,33 @@ function buildGym(scene: Phaser.Scene): void {
   if (scene.textures.exists('bld-gym')) return;
   const g = scene.make.graphics({ x: 0, y: 0 }, false);
   const u = 4;
-  // thân nhà
-  px(g, 0x2b2d42, 0, 6, 60, 39, u);
-  px(g, 0x3a3d5c, 1, 7, 58, 37, u);
-  // mái
-  px(g, 0x1d3557, 0, 2, 60, 5, u);
-  px(g, 0x457b9d, 2, 0, 56, 3, u);
-  // biển hiệu
-  px(g, 0x111111, 8, 9, 44, 9, u);
-  px(g, 0xe63946, 9, 10, 42, 7, u);
-  // tạ đơn trên biển
-  px(g, 0xf6d8a8, 12, 12, 2, 4, u);
-  px(g, 0xf6d8a8, 14, 13, 6, 2, u);
-  px(g, 0xf6d8a8, 20, 12, 2, 4, u);
-  // cửa kính (mờ hơi)
-  px(g, 0x8d99ae, 22, 24, 16, 21, u);
-  px(g, 0xa8dadc, 23, 25, 14, 19, u);
-  px(g, 0xcfeff0, 24, 26, 5, 6, u);
-  px(g, 0x8d99ae, 29, 25, 2, 19, u);
-  px(g, 0xf6d8a8, 27, 35, 1, 2, u);
-  px(g, 0xf6d8a8, 32, 35, 1, 2, u);
-  // cửa sổ
+  // thân nhà: tường trắng, viền xanh
+  px(g, 0x1b5fb8, 0, 6, 60, 39, u);
+  px(g, 0xf4f7fb, 1, 7, 58, 37, u);
+  // dải xanh ngang chân tường
+  px(g, 0x2f7fe0, 1, 41, 58, 3, u);
+  // mái xanh
+  px(g, 0x1b5fb8, 0, 2, 60, 5, u);
+  px(g, 0x4fa3ff, 2, 0, 56, 3, u);
+  // biển hiệu xanh chữ trắng
+  px(g, 0x123f7a, 8, 9, 44, 9, u);
+  px(g, 0x2f7fe0, 9, 10, 42, 7, u);
+  // tạ đơn trắng trên biển
+  px(g, 0xffffff, 12, 12, 2, 4, u);
+  px(g, 0xffffff, 14, 13, 6, 2, u);
+  px(g, 0xffffff, 20, 12, 2, 4, u);
+  // cửa kính (mờ hơi) khung xanh
+  px(g, 0x1b5fb8, 22, 24, 16, 21, u);
+  px(g, 0xbfe3ff, 23, 25, 14, 19, u);
+  px(g, 0xe6f4ff, 24, 26, 5, 6, u);
+  px(g, 0x1b5fb8, 29, 25, 2, 19, u);
+  px(g, 0xffd166, 27, 35, 1, 2, u);
+  px(g, 0xffd166, 32, 35, 1, 2, u);
+  // cửa sổ khung xanh
   for (const wx of [5, 44]) {
-    px(g, 0x8d99ae, wx, 24, 11, 10, u);
-    px(g, 0xa8dadc, wx + 1, 25, 9, 8, u);
-    px(g, 0x8d99ae, wx + 5, 25, 1, 8, u);
+    px(g, 0x1b5fb8, wx, 24, 11, 10, u);
+    px(g, 0xbfe3ff, wx + 1, 25, 9, 8, u);
+    px(g, 0x1b5fb8, wx + 5, 25, 1, 8, u);
   }
   // đèn treo
   px(g, 0xffd166, 4, 20, 2, 1, u);

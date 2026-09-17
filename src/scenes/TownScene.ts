@@ -57,7 +57,7 @@ export class TownScene extends Phaser.Scene {
     athens.on('pointerup', () => this.goTo(ATHENS_DOOR_X, WALK_Y_MIN, 'athens'));
 
     // ─── Trang trí ───
-    drawBackdrop(this, HORIZON, { treeY: WALK_Y_MIN - 10 - HORIZON });
+    drawBackdrop(this, HORIZON, { treeY: 42 });
     for (const lx of [330, 630]) {
       this.add.image(lx, WALK_Y_MIN + 6, 'lamp').setOrigin(0.5, 1).setDepth(-30);
       const light = this.add.image(lx, WALK_Y_MIN - 52, 'sun').setScale(2).setAlpha(0).setDepth(-31).setTint(0xffd166);
@@ -91,7 +91,7 @@ export class TownScene extends Phaser.Scene {
     if (game.day.philosopherBadge) txt(this, 136, 42, 'Triết gia', 18, C.green, { stroke: '#0b0716', strokeThickness: 3 }).setDepth(80);
     new Button(this, GAME_WIDTH - 90, 30, 'CHỈ SỐ', () => this.showStats(), { w: 150, h: 40, size: 20 });
     if (game.newGamePlus > 0) txt(this, GAME_WIDTH - 170, 16, `NG+${game.newGamePlus}`, 20, C.gold, { stroke: '#0b0716', strokeThickness: 3 }).setOrigin(1, 0).setDepth(80);
-    this.prompt = txt(this, GAME_WIDTH / 2, WALK_Y_MIN - 46, '', 22, C.gold, { stroke: '#0b0716', strokeThickness: 4 }).setOrigin(0.5).setDepth(80);
+    this.prompt = txt(this, GAME_WIDTH / 2, 74, '', 22, C.gold, { stroke: '#0b0716', strokeThickness: 4 }).setOrigin(0.5).setDepth(80);
 
     this.setupWeather();
 

@@ -343,7 +343,7 @@ export class PointsHud extends Phaser.GameObjects.Container {
   private dayText: Phaser.GameObjects.Text;
   constructor(scene: Phaser.Scene, x: number, y: number, max = 5) {
     super(scene, x, y);
-    this.dayText = txt(scene, 0, 0, '', 24, C.gold);
+    this.dayText = txt(scene, 0, 0, '', 24, C.gold, { stroke: '#0b0716', strokeThickness: 4 });
     this.add(this.dayText);
     for (let i = 0; i < max; i++) {
       const ic = scene.add.image(140 + i * 28, 12, 'icon-hourglass');
