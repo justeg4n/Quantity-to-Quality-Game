@@ -3,6 +3,7 @@ import { C, GAME_HEIGHT, GAME_WIDTH, SCENE } from '../config/constants';
 import { BALANCE, KNOWLEDGE_KEYS, KNOWLEDGE_SHORT, PHYSICAL_KEYS, PHYSICAL_LABEL } from '../data/balance';
 import { BOSS_LINES } from '../data/dialogue';
 import { ensureAvatar } from '../gfx/Avatar';
+import { drawBackdrop } from '../gfx/Backdrop';
 import { SkyLayer } from '../gfx/Sky';
 import { game } from '../systems/GameState';
 import { Sfx } from '../systems/Sfx';
@@ -25,6 +26,7 @@ export class EndingScene extends Phaser.Scene {
     sky.set(won ? 0.05 : 0.9);
     this.add.tileSprite(0, HORIZON, GAME_WIDTH, GAME_HEIGHT - HORIZON, 'tile-ground').setOrigin(0).setDepth(-50);
     this.add.tileSprite(0, 390, GAME_WIDTH, 110, 'tile-plaza').setOrigin(0).setDepth(-49);
+    drawBackdrop(this, HORIZON, { treeY: 56, tint: won ? undefined : 0xaab0cc });
     this.add.image(160, HORIZON + 12, 'bld-gym').setOrigin(0.5, 1).setDepth(-40);
     this.add.image(800, HORIZON + 12, 'bld-athens').setOrigin(0.5, 1).setDepth(-40);
     if (won) {

@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { C, GAME_HEIGHT, GAME_WIDTH, SCENE } from '../config/constants';
 import { BALANCE } from '../data/balance';
 import { ensureAvatar } from '../gfx/Avatar';
+import { drawBackdrop } from '../gfx/Backdrop';
 import { SkyLayer } from '../gfx/Sky';
 import { game } from '../systems/GameState';
 import { Sfx } from '../systems/Sfx';
@@ -24,8 +25,7 @@ export class TitleScene extends Phaser.Scene {
     this.add.tileSprite(0, GAME_HEIGHT * 0.7 + 40, GAME_WIDTH, 60, 'tile-plaza').setOrigin(0).setDepth(-49);
     this.add.image(150, GAME_HEIGHT * 0.7 + 4, 'bld-gym').setOrigin(0.5, 1).setScale(0.8).setDepth(-48);
     this.add.image(GAME_WIDTH - 150, GAME_HEIGHT * 0.7 + 4, 'bld-athens').setOrigin(0.5, 1).setScale(0.8).setDepth(-48);
-    this.add.image(300, GAME_HEIGHT * 0.7 + 4, 'tree').setOrigin(0.5, 1).setDepth(-47);
-    this.add.image(GAME_WIDTH - 300, GAME_HEIGHT * 0.7 + 4, 'tree').setOrigin(0.5, 1).setDepth(-47);
+    drawBackdrop(this, GAME_HEIGHT * 0.7, { treeY: 38, baseDepth: -49 });
 
     // Avatar demo: 2 nhân vật (mới & đã tập)
     const weak = StatsManager.empty();

@@ -3,6 +3,7 @@ import { C, GAME_HEIGHT, GAME_WIDTH, SCENE } from '../config/constants';
 import { BALANCE, KNOWLEDGE_KEYS, KNOWLEDGE_SHORT, PHYSICAL_KEYS, PHYSICAL_LABEL } from '../data/balance';
 import { dayFlavor } from '../data/dialogue';
 import { ensureAvatar } from '../gfx/Avatar';
+import { drawBackdrop } from '../gfx/Backdrop';
 import { SkyLayer } from '../gfx/Sky';
 import { game } from '../systems/GameState';
 import { Sfx } from '../systems/Sfx';
@@ -30,6 +31,7 @@ export class DayEndScene extends Phaser.Scene {
     this.sky.set(1);
     this.add.tileSprite(0, HORIZON, GAME_WIDTH, GAME_HEIGHT - HORIZON, 'tile-ground').setOrigin(0).setDepth(-50).setTint(0x556677);
     this.add.tileSprite(0, 390, GAME_WIDTH, 110, 'tile-plaza').setOrigin(0).setDepth(-49).setTint(0x778899);
+    drawBackdrop(this, HORIZON, { tint: 0x8899bb, treeY: 56 });
     this.add.image(160, HORIZON + 12, 'bld-gym').setOrigin(0.5, 1).setDepth(-40).setTint(0x8899bb);
     this.add.image(800, HORIZON + 12, 'bld-athens').setOrigin(0.5, 1).setDepth(-40).setTint(0x8899bb);
     for (const lx of [330, 630]) {

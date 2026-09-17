@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { C, GAME_HEIGHT, GAME_WIDTH, SCENE } from '../config/constants';
 import { BALANCE, KNOWLEDGE_KEYS, KNOWLEDGE_LABEL, PHYSICAL_KEYS, PHYSICAL_LABEL } from '../data/balance';
 import { ensureAvatar, type Pose } from '../gfx/Avatar';
+import { drawBackdrop } from '../gfx/Backdrop';
 import { SkyLayer, timeFromPoints } from '../gfx/Sky';
 import { game } from '../systems/GameState';
 import { Sfx } from '../systems/Sfx';
@@ -56,11 +57,7 @@ export class TownScene extends Phaser.Scene {
     athens.on('pointerup', () => this.goTo(ATHENS_DOOR_X, WALK_Y_MIN, 'athens'));
 
     // ─── Trang trí ───
-    this.add.image(40, HORIZON + 8, 'tree').setOrigin(0.5, 1).setDepth(-41);
-    this.add.image(GAME_WIDTH - 40, HORIZON + 8, 'tree').setOrigin(0.5, 1).setDepth(-41);
-    this.add.image(GAME_WIDTH / 2, HORIZON - 4, 'tree').setOrigin(0.5, 1).setDepth(-41).setScale(1.2);
-    this.add.image(300, HORIZON + 30, 'bush').setOrigin(0.5, 1).setDepth(-41);
-    this.add.image(660, HORIZON + 30, 'bush').setOrigin(0.5, 1).setDepth(-41);
+    drawBackdrop(this, HORIZON, { treeY: WALK_Y_MIN - 10 - HORIZON });
     for (const lx of [330, 630]) {
       this.add.image(lx, WALK_Y_MIN + 6, 'lamp').setOrigin(0.5, 1).setDepth(-30);
       const light = this.add.image(lx, WALK_Y_MIN - 52, 'sun').setScale(2).setAlpha(0).setDepth(-31).setTint(0xffd166);

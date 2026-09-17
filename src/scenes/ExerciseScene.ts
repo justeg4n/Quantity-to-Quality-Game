@@ -29,7 +29,6 @@ export class ExerciseScene extends Phaser.Scene {
   private coachText!: Phaser.GameObjects.Text;
   private barG!: Phaser.GameObjects.Graphics;
   private video: Phaser.GameObjects.Video | null = null;
-  private videoSized = false;
   private unbind: (() => void) | null = null;
   private actionBtn!: ActionButton;
   private finished = false;
@@ -43,7 +42,6 @@ export class ExerciseScene extends Phaser.Scene {
     enablePause(this);
     this.muscle = data.muscle;
     this.finished = false;
-    this.videoSized = false;
     this.gradeBoxes = [];
     const ex = EXERCISES[this.muscle];
     this.engine = new ExerciseEngine(ex);
@@ -66,13 +64,21 @@ export class ExerciseScene extends Phaser.Scene {
 
     // ─── Khung TV + video HLV ───
     this.add.image(150, 300, 'tv-frame');
-    txt(this, 150, 165, 'HLV DEMO', 18, C.green).setOrigin(0.5);
-    this.add.image(150, 288, `poster-${this.muscle}`).setDisplaySize(150, 236).setAlpha(0.6);
+    txt(this, 150, 138, 'HLV DEMO', 18, C.green).setOrigin(0.5);
+    // Màn hình TV: vùng 204x236 tại tâm (150, 288); video/poster bị cắt (mask) đúng vùng này
+    const screenMask = this.make.graphics({ x: 0, y: 0 }, false);
+    screenMask.fillStyle(0xffffff, 1).fillRect(150 - 102, 288 - 118, 204, 236);
+    const mask = screenMask.createGeometryMask();
+    this.add.image(150, 288, `poster-${this.muscle}`).setDisplaySize(150, 236).setAlpha(0.6).setMask(mask);
     if (this.cache.video.exists(`vid-${this.muscle}`)) {
       this.video = this.add.video(150, 288, `vid-${this.muscle}`);
       this.video.setLoop(true);
       this.video.setMute(true);
+      this.video.setMask(mask);
       this.video.play(true);
+      this.fitVideo();
+      this.video.on('created', () => this.fitVideo());
+      this.video.on('metadata', () => this.fitVideo());
     }
 
     // ─── Avatar ───
@@ -173,12 +179,24 @@ export class ExerciseScene extends Phaser.Scene {
     this.streakText.setText(s > 0 ? `PERFECT x${s}${s >= 3 ? '  ★ COMBO' : ''}` : '');
   }
 
-  update(_t: number, delta: number): void {
-    if (this.video && !this.videoSized && this.video.width > 0) {
-      const scale = 236 / this.video.height;
-      this.video.setScale(scale);
-      this.videoSized = true;
+  /** Ép video vừa chiều cao màn hình TV (Phaser reset kích thước khi texture video được tạo) */
+  private fitVideo(): void {
+    if (!this.video || this.video.width <= 0 || this.video.height <= 0) return;
+    const targetH = 236;
+    const ar = this.video.width / this.video.height;
+    let w = targetH * ar;
+    let h = targetH;
+    if (w > 204) {
+      w = 204;
+      h = 204 / ar;
     }
+    if (Math.abs(this.video.displayHeight - h) > 0.5 || Math.abs(this.video.displayWidth - w) > 0.5) {
+      this.video.setDisplaySize(w, h);
+    }
+  }
+
+  update(_t: number, delta: number): void {
+    this.fitVideo();
     if (this.finished) return;
     this.engine.update(delta);
     this.drawBar();
