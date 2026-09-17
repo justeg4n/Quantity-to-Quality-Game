@@ -1,0 +1,19 @@
+{
+  "name": "quantity-to-quality",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Quantity to Quality - WheyStation vs Athens. Game pixel 2D minh hoa quy luat Luong - Chat.",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "phaser": "^3.90.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3",
+    "vite": "^6.0.5"
+  }
+}
