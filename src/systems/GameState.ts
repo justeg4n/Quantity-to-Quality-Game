@@ -1,6 +1,6 @@
-import { BALANCE } from '../data/balance';
+import { BALANCE, KNOWLEDGE_KEYS } from '../data/balance';
 import { dayDiary } from '../data/dialogue';
-import type { Badges, DayState, SaveData, Weather } from '../data/types';
+import type { Badges, DayState, KnowledgeKey, SaveData, Weather } from '../data/types';
 import { SaveSystem } from './SaveSystem';
 import { StatsManager } from './StatsManager';
 
@@ -132,9 +132,21 @@ class GameStateImpl {
     return this.day.pointsLeft === 0;
   }
 
-  /** Chốt ngày: ghi nhật ký, cập nhật huy hiệu, chuyển ngày kế hoặc sang boss. Trả true nếu vào boss. */
-  endDay(): { diary: string; goBoss: boolean } {
+  /**
+   * Chốt ngày: ghi nhật ký, cập nhật huy hiệu, chuyển ngày kế hoặc sang boss.
+   * Không học cả ngày → "đầu nhỏ lại": mỗi khối kiến thức −1 (trả về danh sách khối bị trừ).
+   */
+  endDay(): { diary: string; goBoss: boolean; forgot: KnowledgeKey[] } {
     const d = this.day;
+    const forgot: KnowledgeKey[] = [];
+    if (d.studyToday === 0) {
+      for (const k of KNOWLEDGE_KEYS) {
+        if (this.stats.knowledge(k) > 0) {
+          this.stats.addKnowledge(k, -1);
+          forgot.push(k);
+        }
+      }
+    }
     const diary = dayDiary(d.currentDay, d.gymToday, d.studyToday, d.weather);
     d.log.push({ day: d.currentDay, gym: d.gymToday, study: d.studyToday, diary });
     this.updateBadges();
@@ -146,7 +158,7 @@ class GameStateImpl {
       this.day = { ...freshDay(d.currentDay + 1), log };
     }
     this.save();
-    return { diary, goBoss };
+    return { diary, goBoss, forgot };
   }
 
   isLastDay(): boolean {

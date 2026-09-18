@@ -78,6 +78,8 @@ export const BOSS_LINES = {
   negation: 'PHỦ ĐỊNH CỦA PHỦ ĐỊNH',
   negationHint: 'Chỉ số hiện tại = tích luỹ − đã tiêu hao ở hai phase trước. Mỗi lần tập trừ 1 điểm nhóm cơ liên quan. Giải đúng cả 5 câu.',
   drainRule: 'Mỗi lượt tập trừ 1 điểm các nhóm cơ liên quan · mỗi câu hỏi trừ 1 điểm khối đó. Thất bại / sai → trừ thêm 1 ở MỌI nhóm còn lại.',
+  quantityCats: 'Câu hỏi thuộc khối Chất · Lượng · Quan hệ Lượng–Chất.',
+  struggleCats: 'Câu hỏi thuộc khối Độ · Điểm nút & Bước nhảy.',
   win: 'Lượng đã đủ. Chất đã đổi. Ngươi không còn là kẻ bước vào đây ngày đầu tiên.',
   lose: 'Lượng chưa đủ để đổi chất. Nhưng phủ định không phải là kết thúc — hãy quay lại.',
 };

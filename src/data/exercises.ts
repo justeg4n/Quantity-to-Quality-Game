@@ -15,12 +15,12 @@ export const MODE_INFO: Record<ExerciseMode, { short: string; howto: string; but
   },
   hold: {
     short: '[giữ & thả]',
-    howto: 'GIỮ SPACE / giữ nút để kéo thanh — THẢ ra khi thanh kéo vào vùng XANH. Giữ quá lâu = hỏng form!',
+    howto: 'GIỮ SPACE / giữ nút để kéo thanh — THẢ đúng lúc thanh vào vạch XANH hẹp (vàng = Good). Thả sớm hoặc kéo quá đà = hỏng form!',
     button: 'GIỮ ĐỂ KÉO',
   },
   alternate: {
-    short: '[luân phiên trái/phải]',
-    howto: 'Bấm luân phiên TRÁI (A / ←) và PHẢI (D / →) đúng thứ tự. Bấm sai tay = mất nhịp!',
+    short: '[đúng tay chỉ định]',
+    howto: 'Thanh tạ sáng bên nào thì bấm tay đó — TRÁI (A / ←) hoặc PHẢI (D / →), thứ tự ngẫu nhiên. Bấm sai tay = mất nhịp!',
     button: 'TRÁI · PHẢI',
   },
   rhythm: {
@@ -69,7 +69,7 @@ export const EXERCISES: Record<PhysicalKey, ExerciseConfig> = {
     videoPath: '/videos/lung.mp4',
     posterPath: '/videos/lung.jpg',
     repsRequired: BALANCE.repsPerWorkout,
-    holdMs: 1500,
+    holdMs: 1300,
   },
   tay: {
     id: 'bicepcurl',
@@ -80,7 +80,7 @@ export const EXERCISES: Record<PhysicalKey, ExerciseConfig> = {
     videoPath: '/videos/tay.mp4',
     posterPath: '/videos/tay.jpg',
     repsRequired: BALANCE.repsPerWorkout,
-    repWindowMs: 4000,
+    repWindowMs: 3500,
     altPerRep: 6,
   },
   bung: {

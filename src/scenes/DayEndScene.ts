@@ -25,7 +25,7 @@ export class DayEndScene extends Phaser.Scene {
     const dayNum = game.day.currentDay;
     const gymN = game.day.gymToday;
     const studyN = game.day.studyToday;
-    const { diary, goBoss } = game.endDay();
+    const { diary, goBoss, forgot } = game.endDay();
 
     this.sky = new SkyLayer(this, HORIZON);
     this.sky.set(1);
@@ -55,7 +55,15 @@ export class DayEndScene extends Phaser.Scene {
     g.fillStyle(0x0b0716, 0.92).fillRect(px0 + 4, py0 + 4, pw - 8, ph - 8);
     summary.add(txt(this, GAME_WIDTH / 2, py0 + 12, `TỔNG KẾT NGÀY ${dayNum}`, 32, C.gold).setOrigin(0.5, 0));
     summary.add(txt(this, px0 + 24, py0 + 60, `Điểm đã dùng:  🏋 Gym ${gymN}   ·   📖 Học ${studyN}`, 22, C.cream));
-    summary.add(txt(this, px0 + 24, py0 + 92, dayFlavor(gymN, studyN), 20, C.sky, { wordWrap: { width: 470 } }));
+    if (studyN === 0) {
+      // không học cả ngày → đầu nhỏ lại
+      const warn = forgot.length ? `Đầu nhỏ lại: ${forgot.map((k) => KNOWLEDGE_SHORT[k]).join(', ')} −1.` : 'Đầu nhỏ lại (chưa có gì để quên...).';
+      const t = txt(this, px0 + 24, py0 + 92, `${dayFlavor(gymN, studyN)} ${warn}`, 18, C.red, { wordWrap: { width: 470 } });
+      summary.add(t);
+      this.tweens.add({ targets: t, alpha: 0.5, duration: 500, yoyo: true, repeat: -1 });
+    } else {
+      summary.add(txt(this, px0 + 24, py0 + 92, dayFlavor(gymN, studyN), 20, C.sky, { wordWrap: { width: 470 } }));
+    }
     summary.add(txt(this, px0 + 24, py0 + 150, 'Nhật ký:', 18, C.gray));
     summary.add(txt(this, px0 + 24, py0 + 172, diary, 19, C.cream, { wordWrap: { width: 470 }, fontStyle: 'italic' }));
     summary.add(txt(this, px0 + 24, py0 + 228, `Tổng: Gym ${game.totalGym} · Học ${game.totalStudy}   ·   Còn ${Math.max(0, BALANCE.totalDays - dayNum)} ngày`, 18, C.gray));

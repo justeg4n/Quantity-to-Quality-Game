@@ -23,8 +23,20 @@ type BossExercise = (typeof BALANCE.bossExercises)[number];
 // ─── Tham số các phase (chi phí tiêu hao tối thiểu được tính trong data/balance.ts) ───
 // Phase "Lượng đổi": mở màn bằng 1 lượt tập, sau đó cứ 2 câu hỏi lại 1 lượt; cần 2 câu đúng.
 const QZ = { drainMs: 45000, needCorrect: 2, burstEvery: 2, burstMs: 3000, burstPresses: 12 };
-// Phase "Đấu tranh": 1 rep (Good/Perfect) + 2 câu đúng trong 60s. (1 rep để trường hợp bài tập ngẫu nhiên xấu nhất vẫn thắng được trong 40 điểm)
-const SP = { totalMs: 60000, needReps: 1, needCorrect: 2, questionMs: 20000 };
+// Phase "Đấu tranh": 3 rep (Good/Perfect) + 2 câu đúng trong 60s. Cả lượt tập tiêu hao 1 lần (khi bắt đầu),
+// mỗi rep trượt phạt −1 các nhóm cơ còn lại — nhờ vậy số rep tăng mà cân bằng 37/40 không đổi.
+const SP = { totalMs: 60000, needReps: 3, needCorrect: 2, questionMs: 20000 };
+
+/**
+ * Concept từng phase quyết định khối kiến thức được hỏi (bài tập & câu cụ thể vẫn ngẫu nhiên):
+ * - Lượng đổi → Chất đổi: Chất, Lượng, Quan hệ Lượng–Chất
+ * - Đấu tranh giữa các mặt đối lập: Độ (giới hạn giằng co), Điểm nút & Bước nhảy
+ * - Phủ định của phủ định: đề tổng hợp mọi khối (QuizEngine.drawBossExam)
+ */
+const CONCEPT_CATS: Record<Exclude<PhaseKind, 'negation'>, KnowledgeKey[]> = {
+  quantity: ['chat', 'luong', 'quanHeLuongChat'],
+  struggle: ['do', 'diemNutBuocNhay'],
+};
 
 // ─── Bố cục chia đôi: trên = đấu trường (nhân vật + vòng xoáy), dưới = câu hỏi / thử thách ───
 const ARENA_H = 250;
@@ -62,6 +74,7 @@ export class BossScene extends Phaser.Scene {
   private unbinders: Array<() => void> = [];
   private actionBtn: ActionButton | null = null;
   private usedQ = new Set<string>();
+  private lastCat: KnowledgeKey | null = null;
   private busy = false;
 
   /** Thứ tự phase & bài tập của lần chơi này (ngẫu nhiên mỗi trận) */
@@ -280,6 +293,14 @@ export class BossScene extends Phaser.Scene {
     floatText(this, x, y, failed ? `−1 ${names}  và  −1 mọi nhóm cơ khác!` : `−1 ${names}`, failed ? C.red : C.orange, 18);
   }
 
+  /** Phạt khi thất bại một rep: −1 mọi nhóm cơ KHÔNG thuộc bài tập (bài tập đã tiêu hao khi bắt đầu lượt) */
+  private penaltyOthers(muscles: readonly PhysicalKey[], x: number, y: number): void {
+    PHYSICAL_KEYS.filter((m) => !muscles.includes(m)).forEach((m) => game.stats.addPhysical(m, -1));
+    this.refreshStrip();
+    this.refreshFatigue();
+    floatText(this, x, y, 'Trượt → −1 mọi nhóm cơ khác!', C.red, 18);
+  }
+
   /** Tiêu hao kiến thức ở 2 phase đầu: −1 khối của câu hỏi khi đọc đề; nếu sai −1 cả các khối còn lại. */
   private drainKnowledge(cat: KnowledgeKey, failed: boolean, x: number, y: number): void {
     if (!failed) game.stats.addKnowledge(cat, -1);
@@ -289,13 +310,16 @@ export class BossScene extends Phaser.Scene {
   }
 
   /**
-   * Câu hỏi 2 phase đầu: rút ngẫu nhiên từ khối người chơi đang tích luỹ NHIỀU nhất (mỗi câu tiêu hao 1 điểm khối đó),
-   * không lặp lại câu trong cùng trận.
+   * Câu hỏi 2 phase đầu: trong nhóm khối đúng concept của phase, rút từ khối người chơi đang tích luỹ NHIỀU nhất
+   * (mỗi câu tiêu hao 1 điểm khối đó); đổi khối so với câu trước khi có thể; không lặp câu trong cùng trận.
    */
-  private nextQuestion(): QuizQuestion {
-    const max = Math.max(...KNOWLEDGE_KEYS.map((k) => game.stats.knowledge(k)));
-    const top = KNOWLEDGE_KEYS.filter((k) => game.stats.knowledge(k) === max);
+  private nextQuestion(kind: Exclude<PhaseKind, 'negation'>): QuizQuestion {
+    const group = CONCEPT_CATS[kind];
+    const max = Math.max(...group.map((k) => game.stats.knowledge(k)));
+    let top = group.filter((k) => game.stats.knowledge(k) === max);
+    if (top.length > 1 && this.lastCat) top = top.filter((k) => k !== this.lastCat);
     const cat = top[Math.floor(Math.random() * top.length)];
+    this.lastCat = cat;
     const q = QuizEngine.drawFrom(cat, this.usedQ);
     this.usedQ.add(q.id);
     return q;
@@ -369,7 +393,7 @@ export class BossScene extends Phaser.Scene {
     const names = ex.muscles.map((m) => PHYSICAL_LABEL[m]).join(', ');
     this.banner(
       this.phaseLabel('quantity'),
-      `${BOSS_LINES.quantityHint}\nBài tập: ${ex.name} (−1 ${names} mỗi lượt) · ${BOSS_LINES.drainRule}\nCần ${QZ.needCorrect} câu đúng trước khi thanh Năng lượng cạn.`,
+      `${BOSS_LINES.quantityHint} ${BOSS_LINES.quantityCats}\nBài tập: ${ex.name} (−1 ${names} mỗi lượt) · ${BOSS_LINES.drainRule}\nCần ${QZ.needCorrect} câu đúng trước khi thanh Năng lượng cạn.`,
       () => {
         this.panelBg();
         this.qzBar = this.add.graphics();
@@ -392,7 +416,7 @@ export class BossScene extends Phaser.Scene {
 
   private qzAsk(): void {
     if (!this.qzQuiz) return;
-    const q = this.nextQuestion();
+    const q = this.nextQuestion('quantity');
     this.drainKnowledge(q.category, false, GAME_WIDTH / 2, ARENA_H - 30);
     this.qzQuiz.show(q, (_i, correct) => {
       this.qz.answered++;
@@ -505,10 +529,12 @@ export class BossScene extends Phaser.Scene {
     const names = ex.muscles.map((m) => PHYSICAL_LABEL[m]).join(', ');
     this.banner(
       this.phaseLabel('struggle'),
-      `${BOSS_LINES.struggleHint}\nBài tập: ${ex.name} (−1 ${names} mỗi rep) · ${BOSS_LINES.drainRule}\nCần ${SP.needReps} rep (Good/Perfect) VÀ ${SP.needCorrect} câu đúng trong ${SP.totalMs / 1000}s.`,
+      `${BOSS_LINES.struggleHint} ${BOSS_LINES.struggleCats}\nBài tập: ${ex.name} — cả lượt tập tiêu hao −1 ${names}; mỗi rep TRƯỢT phạt −1 mọi nhóm cơ khác. Mỗi câu hỏi −1 khối đó, sai → −1 mọi khối khác.\nCần ${SP.needReps} rep (Good/Perfect) VÀ ${SP.needCorrect} câu đúng trong ${SP.totalMs / 1000}s.`,
       () => {
         this.panelBg();
         this.setAvatar(POSES[ex.id][0]);
+        // cả lượt tập tiêu hao 1 lần khi bắt đầu
+        this.drainPhysical(ex.muscles, false, AVATAR_X + 120, ARENA_H - 50);
         const g = this.add.graphics();
         g.fillStyle(C.borderHex, 1).fillRect(GAME_WIDTH / 2 - 2, PANEL_Y + 4, 4, GAME_HEIGHT - PANEL_Y - 18);
         this.phaseRoot.add(g);
@@ -526,12 +552,11 @@ export class BossScene extends Phaser.Scene {
         this.spQuiz = new QuizPanel(this, GAME_WIDTH / 2 + 20, PANEL_Y + 68, { w: 420, questionSize: 15, optionSize: 14, instantFeedback: true, optionGap: 2 });
         this.phaseRoot.add(this.spQuiz);
 
-        this.spEngine = new TimingEngine({ mode: 'timing', repsRequired: 999, timingSpeed: 0.62 });
+        this.spEngine = new TimingEngine({ mode: 'timing', repsRequired: 999, timingSpeed: 0.8 });
         this.spEngine.on('rep', (grade) => {
           if (this.phase !== 'struggle') return;
-          // mỗi rep tiêu hao nhóm cơ liên quan; trượt thì mọi nhóm cơ khác cũng −1
-          this.drainPhysical(ex.muscles, grade === 'bad', AVATAR_X + 120, ARENA_H - 50);
           if (grade === 'bad') {
+            this.penaltyOthers(ex.muscles, AVATAR_X + 120, ARENA_H - 50);
             this.playerHit();
             floatText(this, 250, PANEL_Y + 100, 'TRƯỢT', C.red, 22);
           } else {
@@ -559,7 +584,7 @@ export class BossScene extends Phaser.Scene {
     if (this.sp.correct >= SP.needCorrect) return;
     this.sp.qTimer = SP.questionMs;
     this.sp.qActive = true;
-    const q = this.nextQuestion();
+    const q = this.nextQuestion('struggle');
     this.spCat = q.category;
     this.drainKnowledge(q.category, false, 720, ARENA_H - 30);
     this.spQuiz.show(q, (_i, correct) => {

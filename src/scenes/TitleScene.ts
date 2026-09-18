@@ -5,6 +5,7 @@ import { ensureAvatar } from '../gfx/Avatar';
 import { drawBackdrop } from '../gfx/Backdrop';
 import { SkyLayer } from '../gfx/Sky';
 import { game } from '../systems/GameState';
+import { SaveSystem } from '../systems/SaveSystem';
 import { Sfx } from '../systems/Sfx';
 import { StatsManager } from '../systems/StatsManager';
 import { Button, modal, txt } from '../ui/Widgets';
@@ -53,9 +54,11 @@ export class TitleScene extends Phaser.Scene {
     this.tweens.add({ targets: title, y: 66, duration: 1400, yoyo: true, repeat: -1, ease: 'Sine.InOut' });
 
     // Nút
+    // Chỉ cho "Tiếp tục" khi ván chưa kết thúc; đã kết thúc thì chỉ còn "Chơi mới"
     const hasSave = game.hasSave();
+    const canContinue = hasSave && SaveSystem.load()?.phase !== 'ended';
     let y = 215;
-    if (hasSave) {
+    if (canContinue) {
       new Button(this, GAME_WIDTH / 2, y, 'TIẾP TỤC', () => this.continueGame(), { w: 300, h: 50, fill: C.blueHex });
       y += 62;
     }
@@ -122,10 +125,10 @@ export class TitleScene extends Phaser.Scene {
     const m = modal(this, GAME_WIDTH - 120, GAME_HEIGHT - 80);
     const lines = [
       `MỤC TIÊU: Trải qua ${BALANCE.totalDays} ngày rèn luyện, mỗi ngày có ${BALANCE.pointsPerDay} ĐIỂM ĐẦU NGÀY (đồng hồ cát).`,
-      `Phải tiêu HẾT ${BALANCE.pointsPerDay} điểm mới được sang ngày mới. Mỗi lượt Tập / Học tốn 1 điểm.`,
+      `Phải tiêu HẾT ${BALANCE.pointsPerDay} điểm mới được sang ngày mới. Mỗi lượt Tập / Học tốn 1 điểm. Ngày nào KHÔNG học → đầu nhỏ lại (mỗi khối −1).`,
       '',
       'WHEYSTATION (gym): chọn nhóm cơ → mini-game 6 rep, mỗi bài một cơ chế riêng (bấm liên tục, canh thời điểm,',
-      '   giữ & thả, luân phiên trái/phải, đúng nhịp, chuỗi mũi tên).',
+      '   giữ & thả, đúng tay chỉ định, đúng nhịp, chuỗi mũi tên).',
       '   Hoàn thành → +1 điểm nhóm cơ đó. Nhân vật to dần đúng nhóm cơ đã tập.',
       'ATHENS (học): chọn khối kiến thức → trả lời 2 câu trắc nghiệm → +1 điểm khối đó.',
       '',

@@ -9,9 +9,11 @@ import type { KnowledgeKey, PhysicalKey } from './types';
  *   Mỗi khối kiến thức >= 2                             (12 điểm Học)
  * Hai phase đầu (thứ tự & bài tập ngẫu nhiên) tiêu hao thêm trước khi vào phase cuối (chơi hoàn hảo):
  *   "Lượng đổi":  1 lượt bài tập X (−1 các nhóm cơ của X) + 2 câu hỏi (−1 khối mỗi câu)
- *   "Đấu tranh":  1 rep bài tập Y (−1 các nhóm cơ của Y)   + 2 câu hỏi (−1 khối mỗi câu)
+ *   "Đấu tranh":  1 lượt bài tập Y gồm 3 rep (−1 các nhóm cơ của Y, tính 1 lần cho cả lượt) + 2 câu hỏi (−1 khối mỗi câu)
  *   X, Y là 2 trong 3 bài Push-up / Lat Pull Down / Squat. Trường hợp xấu nhất mỗi nhóm cơ:
- *   Ngực 3, Vai 3, Lưng 3, Chân 3, Bụng 3, Tay 6 (Tay dùng ở 2 bài) => 21 Gym; Học 12 + 4 = 16.
+ *   Ngực 3, Vai 3, Lưng 3, Chân 3, Bụng 3, Tay 6 (Tay dùng ở 2 bài) => 21 Gym.
+ *   Câu hỏi theo concept phase: "Lượng đổi" hỏi Chất/Lượng/QH L–C (2 câu, ưu tiên khối cao nhất => nhóm này tổng >= 8),
+ *   "Đấu tranh" hỏi Độ/Điểm nút (2 câu => nhóm này tổng >= 6), Vận dụng >= 2 => Học 16.
  *   Thất bại/sai trừ thêm 1 ở MỌI nhóm còn lại.
  * Tổng tối thiểu để chắc chắn thắng: 21 Gym + 16 Học = 37 / 40 điểm, còn 3 điểm dự phòng.
  */

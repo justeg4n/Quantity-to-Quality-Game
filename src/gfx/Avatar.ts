@@ -40,6 +40,12 @@ export function muscleLevel(stat: number): number {
   return Math.min(3, Math.floor(stat / 2));
 }
 
+/** Cỡ đầu (đơn vị pixel-art) theo TỔNG điểm kiến thức: 6 (rỗng) → 10 (uyên bác). Không học thì đầu nhỏ lại. */
+export function headSize(stats: PlayerStats): number {
+  const total = Object.values(stats.knowledge).reduce((s, v) => s + v, 0);
+  return 6 + Math.min(4, Math.floor(total / 4));
+}
+
 export interface ArmPose {
   elbow: [number, number];
   hand: [number, number];
@@ -80,7 +86,7 @@ const POSES: Record<Pose, PoseDef> = {
 export function avatarKey(stats: PlayerStats, pose: Pose): string {
   const p = stats.physical;
   const l = [p.nguc, p.vai, p.lung, p.tay, p.bung, p.chan].map(muscleLevel).join('');
-  return `av-${pose}-${l}`;
+  return `av-${pose}-${l}-h${headSize(stats)}`;
 }
 
 /** Đảm bảo texture avatar tồn tại; trả về key. u = kích thước 1 pixel-art (px). */
@@ -119,8 +125,9 @@ export function drawAvatar(g: Phaser.GameObjects.Graphics, stats: PlayerStats, p
   const squat = def.squat ?? 0;
   const lean = def.lean ?? 0;
 
+  const hs = headSize(stats);
   if (def.lying) {
-    drawLying(g, L, def, u);
+    drawLying(g, L, def, u, hs);
     return;
   }
 
@@ -138,7 +145,6 @@ export function drawAvatar(g: Phaser.GameObjects.Graphics, stats: PlayerStats, p
   const torsoH = 12;
   const torsoTop = hipY - torsoH + lean;
   const neckY = torsoTop - 2;
-  const headY = neckY - 8;
 
   // ─── Chân ───
   const lo = def.legOffset ?? [0, 0];
@@ -207,28 +213,33 @@ export function drawAvatar(g: Phaser.GameObjects.Graphics, stats: PlayerStats, p
 
   // ─── Cổ, đầu ───
   px(g, SKIN, cx - 1, neckY, 2 + Math.min(L.vai, 1), 2, u);
-  px(g, SKIN, cx - 4, headY, 8, 8, u);
-  px(g, HAIR, cx - 4, headY - 1, 8, 3, u);
-  px(g, HAIR, cx - 5, headY, 1, 3, u);
-  px(g, HAIR, cx + 4, headY, 1, 3, u);
+  // đầu: cỡ theo kiến thức, neo ở cổ (đầu nhỏ thì ngắn hơn, không "lơ lửng")
+  const hx = cx - Math.floor(hs / 2);
+  const hy = neckY - hs;
+  px(g, SKIN, hx, hy, hs, hs, u);
+  px(g, HAIR, hx, hy - 1, hs, 3, u);
+  px(g, HAIR, hx - 1, hy, 1, 3, u);
+  px(g, HAIR, hx + hs, hy, 1, 3, u);
   // mắt
   const tiredEyes = pose === 'tired';
-  px(g, EYE, cx - 3, headY + 4, 1, tiredEyes ? 1 : 2, u);
-  px(g, EYE, cx + 2, headY + 4, 1, tiredEyes ? 1 : 2, u);
+  const eyeY = hy + Math.floor(hs / 2);
+  px(g, EYE, hx + 1, eyeY, 1, tiredEyes ? 1 : 2, u);
+  px(g, EYE, hx + hs - 2, eyeY, 1, tiredEyes ? 1 : 2, u);
   // miệng
+  const mouthY = hy + hs - 2;
   if (pose === 'happy' || pose === 'flex') {
-    px(g, 0x8b3a3a, cx - 2, headY + 6, 4, 1, u);
-    px(g, 0x8b3a3a, cx - 3, headY + 5, 1, 1, u);
-    px(g, 0x8b3a3a, cx + 2, headY + 5, 1, 1, u);
+    px(g, 0x8b3a3a, cx - 2, mouthY, 4, 1, u);
+    px(g, 0x8b3a3a, cx - 3, mouthY - 1, 1, 1, u);
+    px(g, 0x8b3a3a, cx + 2, mouthY - 1, 1, 1, u);
   } else if (tiredEyes) {
-    px(g, 0x8b3a3a, cx - 1, headY + 6, 2, 1, u);
+    px(g, 0x8b3a3a, cx - 1, mouthY, 2, 1, u);
   } else {
-    px(g, 0x8b3a3a, cx - 1, headY + 6, 3, 1, u);
+    px(g, 0x8b3a3a, cx - 1, mouthY, 3, 1, u);
   }
 }
 
 /** Tư thế push-up: thân nằm ngang (side view đơn giản) */
-function drawLying(g: Phaser.GameObjects.Graphics, L: Record<string, number>, def: PoseDef, u: number): void {
+function drawLying(g: Phaser.GameObjects.Graphics, L: Record<string, number>, def: PoseDef, u: number, hs: number): void {
   const squat = def.squat ?? 0; // 0 = tay duỗi (cao), 3 = hạ thấp
   const groundY = AV_H - 2;
   const bodyT = 5 + Math.min(L.nguc, 2); // độ dày thân
@@ -241,10 +252,11 @@ function drawLying(g: Phaser.GameObjects.Graphics, L: Record<string, number>, de
   // chân duỗi ra sau (bên trái) + giày
   px(g, SKIN, x0 - 4, bodyY + 2, 5, 3 + Math.min(L.chan, 1), u);
   px(g, SHOE, x0 - 6, bodyY + 3, 3, 3, u);
-  // đầu (bên phải)
-  px(g, SKIN, x1, bodyY - 3, 7, 7, u);
-  px(g, HAIR, x1, bodyY - 4, 7, 2, u);
-  px(g, EYE, x1 + 5, bodyY - 1, 1, 2, u);
+  // đầu (bên phải), cỡ theo kiến thức
+  const hh = hs - 1;
+  px(g, SKIN, x1, bodyY + 4 - hh, hh, hh, u);
+  px(g, HAIR, x1, bodyY + 3 - hh, hh, 2, u);
+  px(g, EYE, x1 + hh - 2, bodyY + 1 - Math.floor(hh / 3), 1, 2, u);
   // tay chống xuống đất
   const armT = 2 + L.tay;
   const sx = x1 - 3;

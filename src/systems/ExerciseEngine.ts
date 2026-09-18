@@ -25,8 +25,8 @@ export interface ExerciseSummary {
 
 /** Vùng chấm điểm cho timing-mode (con trỏ 0..1) */
 export const TIMING_ZONES = { goodMin: 0.3, goodMax: 0.7, perfectMin: 0.44, perfectMax: 0.56 };
-/** Vùng chấm điểm cho hold-mode (thanh kéo 0..1, thả ra trong vùng) */
-export const HOLD_ZONES = { goodMin: 0.5, goodMax: 0.92, perfectMin: 0.68, perfectMax: 0.84 };
+/** Vùng chấm điểm cho hold-mode (thanh kéo 0..1, thả ra trong vùng): Perfect hẹp (6%) < Good (33%) < vùng hỏng (quá đà / thả sớm) */
+export const HOLD_ZONES = { goodMin: 0.55, goodMax: 0.88, perfectMin: 0.76, perfectMax: 0.82 };
 /** Sai số chấm điểm cho rhythm-mode (ms so với lúc nốt chạm vạch) */
 export const RHYTHM_WINDOW = { perfectMs: 80, goodMs: 170, missMs: 230 };
 
@@ -244,10 +244,10 @@ export class HoldEngine extends ExerciseEngine {
   }
 }
 
-/** ALTERNATE — bấm luân phiên trái/phải đủ `altPerRep` lần trong `windowMs`. Sai tay => mất nhịp (tính lỗi). */
+/** ALTERNATE — bấm đúng tay TRÁI/PHẢI được chỉ định NGẪU NHIÊN đủ `altPerRep` lần trong `windowMs`. Sai tay => mất nhịp (tính lỗi). */
 export class AlternateEngine extends ExerciseEngine {
   readonly mode = 'alternate' as const;
-  expected: 'left' | 'right' = 'left';
+  expected: 'left' | 'right' = Math.random() < 0.5 ? 'left' : 'right';
   count = 0;
   mistakes = 0;
   private elapsed = 0;
@@ -282,7 +282,7 @@ export class AlternateEngine extends ExerciseEngine {
       return;
     }
     this.count++;
-    this.expected = input === 'left' ? 'right' : 'left';
+    this.expected = Math.random() < 0.5 ? 'left' : 'right';
     if (this.count >= this.altPerRep) {
       const frac = this.elapsed / this.windowMs;
       this.completeRep(this.mistakes === 0 && frac <= 0.6 ? 'perfect' : this.mistakes <= 2 ? 'good' : 'bad');
@@ -293,7 +293,7 @@ export class AlternateEngine extends ExerciseEngine {
     this.count = 0;
     this.mistakes = 0;
     this.elapsed = 0;
-    this.expected = 'left';
+    this.expected = Math.random() < 0.5 ? 'left' : 'right';
   }
 }
 

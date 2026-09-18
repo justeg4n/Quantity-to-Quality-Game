@@ -108,9 +108,10 @@ export class PauseScene extends Phaser.Scene {
     const m = modal(this, GAME_WIDTH - 120, GAME_HEIGHT - 80, 100);
     const lines = [
       `MỤC TIÊU: ${BALANCE.totalDays} ngày rèn luyện, mỗi ngày ${BALANCE.pointsPerDay} ĐIỂM ĐẦU NGÀY (đồng hồ cát). Phải tiêu HẾT mới sang ngày.`,
+      'Ngày nào KHÔNG học → đầu nhỏ lại: mỗi khối kiến thức −1.',
       '',
       'WHEYSTATION: chọn nhóm cơ → mini-game 6 rep → +1 điểm nhóm cơ. Mỗi bài một cơ chế riêng:',
-      '   Ngực bấm liên tục · Vai canh thời điểm · Lưng giữ & thả · Tay luân phiên A/D · Bụng đúng nhịp · Chân chuỗi mũi tên.',
+      '   Ngực bấm liên tục · Vai canh thời điểm · Lưng giữ & thả · Tay bấm đúng tay chỉ định A/D · Bụng đúng nhịp · Chân chuỗi mũi tên.',
       '   3 Perfect liên tiếp = combo; 2 combo = +1 phụ trội (lượt đó +2).',
       'ATHENS: chọn khối kiến thức → 2 câu trắc nghiệm → +1 điểm khối. Đúng cả 2 → huy hiệu Triết gia.',
       '',
