@@ -35,15 +35,37 @@ const EYE = 0x222222;
 export const AV_W = 40; // đơn vị
 export const AV_H = 42;
 
-/** Mức phát triển cơ 0..3 theo điểm khả năng */
-export function muscleLevel(stat: number): number {
-  return Math.min(3, Math.floor(stat / 2));
+/** Mức phát triển cơ 0..3 theo điểm khả năng, xẹp 1 mức mỗi ngày bỏ tập (chỉ ngoại hình) */
+export function muscleLevel(stat: number, habits: Habits = currentHabits): number {
+  return Math.max(0, Math.min(3, Math.floor(stat / 2)) - habits.noGymDays);
 }
 
-/** Cỡ đầu (đơn vị pixel-art) theo TỔNG điểm kiến thức: 6 (rỗng) → 10 (uyên bác). Không học thì đầu nhỏ lại. */
-export function headSize(stats: PlayerStats): number {
+/**
+ * Thói quen rèn luyện — số ngày đã qua KHÔNG học / KHÔNG tập. Ảnh hưởng ngoại hình:
+ * mỗi ngày bỏ học đầu nhỏ đi 1 cỡ (học bù ngày cuối không kéo lại được), >= 2 ngày → mặt đờ đẫn (mắt lệch, há miệng, chảy dãi);
+ * mỗi ngày bỏ tập cơ xẹp 1 mức, >= 2 ngày → bụng phệ. Chỉ khi học và tập đều thì cơ thể mới cân đối.
+ */
+export interface Habits {
+  noStudyDays: number;
+  noGymDays: number;
+}
+
+let currentHabits: Habits = { noStudyDays: 0, noGymDays: 0 };
+
+/** GameState gọi mỗi khi nhật ký ngày thay đổi (load / newGame / endDay) */
+export function setAvatarHabits(h: Habits): void {
+  currentHabits = { ...h };
+}
+
+/** Cỡ đầu (đơn vị pixel-art): 6 (rỗng) → 10 (uyên bác) theo TỔNG kiến thức, trừ 1 cỡ mỗi ngày bỏ học, tối thiểu 4. */
+export function headSize(stats: PlayerStats, habits: Habits = currentHabits): number {
   const total = Object.values(stats.knowledge).reduce((s, v) => s + v, 0);
-  return 6 + Math.min(4, Math.floor(total / 4));
+  return Math.max(5, 6 + Math.min(4, Math.floor(total / 4)) - habits.noStudyDays);
+}
+
+/** Mặt đờ đẫn khi bỏ học >= 2 ngày */
+export function isDerp(habits: Habits = currentHabits): boolean {
+  return habits.noStudyDays >= 2;
 }
 
 export interface ArmPose {
@@ -83,18 +105,18 @@ const POSES: Record<Pose, PoseDef> = {
   pushup_b: { arm: { elbow: [2, 2], hand: [3, 4] }, lying: true, squat: 3 },
 };
 
-export function avatarKey(stats: PlayerStats, pose: Pose): string {
+export function avatarKey(stats: PlayerStats, pose: Pose, habits: Habits = currentHabits): string {
   const p = stats.physical;
-  const l = [p.nguc, p.vai, p.lung, p.tay, p.bung, p.chan].map(muscleLevel).join('');
-  return `av-${pose}-${l}-h${headSize(stats)}`;
+  const l = [p.nguc, p.vai, p.lung, p.tay, p.bung, p.chan].map((v) => muscleLevel(v, habits)).join('');
+  return `av-${pose}-${l}-h${headSize(stats, habits)}${isDerp(habits) ? 'd' : ''}${habits.noGymDays >= 2 ? 'b' : ''}`;
 }
 
-/** Đảm bảo texture avatar tồn tại; trả về key. u = kích thước 1 pixel-art (px). */
-export function ensureAvatar(scene: Phaser.Scene, stats: PlayerStats, pose: Pose, u = 4): string {
-  const key = avatarKey(stats, pose) + `-u${u}`;
+/** Đảm bảo texture avatar tồn tại; trả về key. u = kích thước 1 pixel-art (px). `habits` mặc định = thói quen của người chơi. */
+export function ensureAvatar(scene: Phaser.Scene, stats: PlayerStats, pose: Pose, u = 4, habits: Habits = currentHabits): string {
+  const key = avatarKey(stats, pose, habits) + `-u${u}`;
   if (scene.textures.exists(key)) return key;
   const g = scene.make.graphics({ x: 0, y: 0 }, false);
-  drawAvatar(g, stats, pose, u);
+  drawAvatar(g, stats, pose, u, habits);
   g.generateTexture(key, AV_W * u, AV_H * u);
   g.destroy();
   return key;
@@ -110,22 +132,24 @@ function seg(g: Phaser.GameObjects.Graphics, color: number, x0: number, y0: numb
 }
 
 /** Vẽ nhân vật (front view) vào Graphics theo đơn vị u. Gốc toạ độ: góc trên-trái của khung AV_W x AV_H. */
-export function drawAvatar(g: Phaser.GameObjects.Graphics, stats: PlayerStats, pose: Pose, u = 4): void {
+export function drawAvatar(g: Phaser.GameObjects.Graphics, stats: PlayerStats, pose: Pose, u = 4, habits: Habits = currentHabits): void {
   const p = stats.physical;
   const L = {
-    nguc: muscleLevel(p.nguc),
-    vai: muscleLevel(p.vai),
-    lung: muscleLevel(p.lung),
-    tay: muscleLevel(p.tay),
-    bung: muscleLevel(p.bung),
-    chan: muscleLevel(p.chan),
+    nguc: muscleLevel(p.nguc, habits),
+    vai: muscleLevel(p.vai, habits),
+    lung: muscleLevel(p.lung, habits),
+    tay: muscleLevel(p.tay, habits),
+    bung: muscleLevel(p.bung, habits),
+    chan: muscleLevel(p.chan, habits),
   };
+  const derp = isDerp(habits);
+  const belly = habits.noGymDays >= 2;
   const def = POSES[pose];
   const cx = AV_W / 2;
   const squat = def.squat ?? 0;
   const lean = def.lean ?? 0;
 
-  const hs = headSize(stats);
+  const hs = headSize(stats, habits);
   if (def.lying) {
     drawLying(g, L, def, u, hs);
     return;
@@ -184,6 +208,11 @@ export function drawAvatar(g: Phaser.GameObjects.Graphics, stats: PlayerStats, p
   px(g, TANK, cx - latW / 2, torsoTop + 4, latW, 4, u);
   // bụng/eo (4 hàng dưới)
   px(g, TANK, cx - waistW / 2, torsoTop + 8, waistW, 4, u);
+  // bụng phệ khi bỏ tập nhiều ngày
+  if (belly) {
+    px(g, TANK, cx - waistW / 2 - 2, torsoTop + 7, waistW + 4, 5, u);
+    px(g, 0x162a4a, cx - waistW / 2 - 2, torsoTop + 11, waistW + 4, 1, u);
+  }
   // múi bụng
   for (let i = 0; i < L.bung; i++) {
     px(g, 0x274c77, cx - 3, torsoTop + 5 + i * 2, 2, 1, u);
@@ -217,17 +246,31 @@ export function drawAvatar(g: Phaser.GameObjects.Graphics, stats: PlayerStats, p
   const hx = cx - Math.floor(hs / 2);
   const hy = neckY - hs;
   px(g, SKIN, hx, hy, hs, hs, u);
-  px(g, HAIR, hx, hy - 1, hs, 3, u);
-  px(g, HAIR, hx - 1, hy, 1, 3, u);
-  px(g, HAIR, hx + hs, hy, 1, 3, u);
+  const hairH = hs >= 7 ? 3 : 2; // đầu nhỏ thì tóc mỏng để còn chỗ cho mặt
+  px(g, HAIR, hx, hy - 1, hs, hairH, u);
+  px(g, HAIR, hx - 1, hy, 1, hairH, u);
+  px(g, HAIR, hx + hs, hy, 1, hairH, u);
   // mắt
   const tiredEyes = pose === 'tired';
-  const eyeY = hy + Math.floor(hs / 2);
-  px(g, EYE, hx + 1, eyeY, 1, tiredEyes ? 1 : 2, u);
-  px(g, EYE, hx + hs - 2, eyeY, 1, tiredEyes ? 1 : 2, u);
+  const eyeY = hs >= 7 ? hy + Math.floor(hs / 2) : hy + hairH - 1;
+  const pad = hs >= 7 ? 1 : 0;
+  if (derp) {
+    // mắt lòe: tròng trắng to, con ngươi mỗi bên lệch một hướng
+    px(g, 0xffffff, hx + pad, eyeY, 2, 2, u);
+    px(g, EYE, hx + pad + 1, eyeY, 1, 1, u);
+    px(g, 0xffffff, hx + hs - 2 - pad, eyeY, 2, 2, u);
+    px(g, EYE, hx + hs - 2 - pad, eyeY + 1, 1, 1, u);
+  } else {
+    px(g, EYE, hx + 1, eyeY, 1, tiredEyes ? 1 : 2, u);
+    px(g, EYE, hx + hs - 2, eyeY, 1, tiredEyes ? 1 : 2, u);
+  }
   // miệng
-  const mouthY = hy + hs - 2;
-  if (pose === 'happy' || pose === 'flex') {
+  const mouthY = Math.max(eyeY + 2, hy + hs - 2);
+  if (derp) {
+    // há miệng, chảy dãi
+    px(g, 0x5a1e1e, cx - 1, mouthY, 3, 1, u);
+    px(g, 0x9ad0ec, cx + 1, mouthY + 1, 1, 3, u);
+  } else if (pose === 'happy' || pose === 'flex') {
     px(g, 0x8b3a3a, cx - 2, mouthY, 4, 1, u);
     px(g, 0x8b3a3a, cx - 3, mouthY - 1, 1, 1, u);
     px(g, 0x8b3a3a, cx + 2, mouthY - 1, 1, 1, u);

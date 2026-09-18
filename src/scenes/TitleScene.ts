@@ -1,7 +1,9 @@
 import Phaser from 'phaser';
 import { C, GAME_HEIGHT, GAME_WIDTH, SCENE } from '../config/constants';
 import { BALANCE } from '../data/balance';
-import { ensureAvatar } from '../gfx/Avatar';
+import { ensureAvatar, type Habits } from '../gfx/Avatar';
+
+const NO_HABITS: Habits = { noStudyDays: 0, noGymDays: 0 };
 import { drawBackdrop } from '../gfx/Backdrop';
 import { SkyLayer } from '../gfx/Sky';
 import { game } from '../systems/GameState';
@@ -32,14 +34,14 @@ export class TitleScene extends Phaser.Scene {
     const weak = StatsManager.empty();
     const strong = StatsManager.empty();
     strong.physical = { nguc: 6, vai: 6, lung: 6, tay: 7, bung: 6, chan: 6 };
-    const a1 = this.add.image(GAME_WIDTH / 2 - 250, GAME_HEIGHT * 0.7 + 42, ensureAvatar(this, weak, 'idle', 3)).setOrigin(0.5, 1);
-    const a2 = this.add.image(GAME_WIDTH / 2 + 250, GAME_HEIGHT * 0.7 + 42, ensureAvatar(this, strong, 'flex', 3)).setOrigin(0.5, 1);
+    const a1 = this.add.image(GAME_WIDTH / 2 - 250, GAME_HEIGHT * 0.7 + 42, ensureAvatar(this, weak, 'idle', 3, NO_HABITS)).setOrigin(0.5, 1);
+    const a2 = this.add.image(GAME_WIDTH / 2 + 250, GAME_HEIGHT * 0.7 + 42, ensureAvatar(this, strong, 'flex', 3, NO_HABITS)).setOrigin(0.5, 1);
     this.time.addEvent({
       delay: 600,
       loop: true,
       callback: () => {
-        a1.setTexture(ensureAvatar(this, weak, a1.texture.key.includes('walk1') ? 'walk2' : 'walk1', 3));
-        a2.setTexture(ensureAvatar(this, strong, a2.texture.key.includes('flex') ? 'happy' : 'flex', 3));
+        a1.setTexture(ensureAvatar(this, weak, a1.texture.key.includes('walk1') ? 'walk2' : 'walk1', 3, NO_HABITS));
+        a2.setTexture(ensureAvatar(this, strong, a2.texture.key.includes('flex') ? 'happy' : 'flex', 3, NO_HABITS));
       },
     });
     txt(this, GAME_WIDTH / 2, GAME_HEIGHT * 0.7 + 52, '→  LƯỢNG ĐỔI  →  CHẤT ĐỔI  →', 20, C.dark).setOrigin(0.5, 0);
@@ -125,7 +127,7 @@ export class TitleScene extends Phaser.Scene {
     const m = modal(this, GAME_WIDTH - 120, GAME_HEIGHT - 80);
     const lines = [
       `MỤC TIÊU: Trải qua ${BALANCE.totalDays} ngày rèn luyện, mỗi ngày có ${BALANCE.pointsPerDay} ĐIỂM ĐẦU NGÀY (đồng hồ cát).`,
-      `Phải tiêu HẾT ${BALANCE.pointsPerDay} điểm mới được sang ngày mới. Mỗi lượt Tập / Học tốn 1 điểm. Ngày nào KHÔNG học → đầu nhỏ lại (mỗi khối −1).`,
+      `Phải tiêu HẾT ${BALANCE.pointsPerDay} điểm mới được sang ngày mới. Mỗi lượt Tập / Học tốn 1 điểm. Ngày nào KHÔNG học → đầu nhỏ lại (mỗi khối −1, mặt đờ đẫn); KHÔNG tập → cơ xẹp, bụng phệ.`,
       '',
       'WHEYSTATION (gym): chọn nhóm cơ → mini-game 6 rep, mỗi bài một cơ chế riêng (bấm liên tục, canh thời điểm,',
       '   giữ & thả, đúng tay chỉ định, đúng nhịp, chuỗi mũi tên).',

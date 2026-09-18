@@ -23,9 +23,10 @@ type BossExercise = (typeof BALANCE.bossExercises)[number];
 // ─── Tham số các phase (chi phí tiêu hao tối thiểu được tính trong data/balance.ts) ───
 // Phase "Lượng đổi": mở màn bằng 1 lượt tập, sau đó cứ 2 câu hỏi lại 1 lượt; cần 2 câu đúng.
 const QZ = { drainMs: 45000, needCorrect: 2, burstEvery: 2, burstMs: 3000, burstPresses: 12 };
-// Phase "Đấu tranh": 3 rep (Good/Perfect) + 2 câu đúng trong 60s. Cả lượt tập tiêu hao 1 lần (khi bắt đầu),
-// mỗi rep trượt phạt −1 các nhóm cơ còn lại — nhờ vậy số rep tăng mà cân bằng 37/40 không đổi.
-const SP = { totalMs: 60000, needReps: 3, needCorrect: 2, questionMs: 20000 };
+// Phase "Đấu tranh": 2 CẶP (bài tập 3 rep Good/Perfect + 1 câu đúng) trong 90s, mỗi cặp một bài tập khác nhau
+// (2 bài còn lại ngoài bài mở màn của phase "Lượng đổi" → cả trận dùng đủ 3 bài). Mỗi lượt bài tập tiêu hao 1 lần
+// khi bắt đầu cặp, mỗi rep trượt phạt −1 các nhóm cơ còn lại — nhờ vậy 6 rep mà cân bằng 37/40 không đổi.
+const SP = { totalMs: 90000, rounds: 2, repsPerRound: 3, questionMs: 20000 };
 
 /**
  * Concept từng phase quyết định khối kiến thức được hỏi (bài tập & câu cụ thể vẫn ngẫu nhiên):
@@ -90,7 +91,7 @@ export class BossScene extends Phaser.Scene {
   private finalSnapshot!: PlayerStats;
 
   // phase "Lượng đổi" (quiz + bùng nổ)
-  private qz = { energy: 1, drainMul: 1, correct: 0, answered: 0, burst: false, burstPresses: 0, burstTimer: 0 };
+  private qz = { energy: 1, drainMul: 1, correct: 0, answered: 0, burst: false, burstPresses: 0, burstTimer: 0, bursts: 0 };
   private qzEx!: BossExercise;
   private qzBar!: Phaser.GameObjects.Graphics;
   private qzQuiz: QuizPanel | null = null;
@@ -99,8 +100,10 @@ export class BossScene extends Phaser.Scene {
   private pushToggle = false;
 
   // phase "Đấu tranh" (chia đôi)
-  private sp = { timer: SP.totalMs, reps: 0, correct: 0, qTimer: SP.questionMs, qActive: false };
-  private spEx!: BossExercise;
+  private sp = { timer: SP.totalMs, round: 0, reps: 0, qDone: false, qTimer: SP.questionMs, qActive: false };
+  /** bài tập cho từng cặp của phase "Đấu tranh" */
+  private spRounds: BossExercise[] = [];
+  private spTitleLeft!: Phaser.GameObjects.Text;
   private spEngine: TimingEngine | null = null;
   private spG!: Phaser.GameObjects.Graphics;
   private spQuiz: QuizPanel | null = null;
@@ -143,7 +146,7 @@ export class BossScene extends Phaser.Scene {
     this.phaseIndex = 0;
     this.exercises = shuffle(BALANCE.bossExercises);
     this.qzEx = this.exercises[0];
-    this.spEx = this.exercises[1];
+    this.spRounds = this.exercises.slice(1, 1 + SP.rounds);
 
     // ─── Đấu trường (nửa trên) ───
     this.sky = new SkyLayer(this, ARENA_H);
@@ -385,15 +388,16 @@ export class BossScene extends Phaser.Scene {
     this.boss.setTexture('boss-1');
     this.bossGlow.setFillStyle(0x9b5de5, 0.18);
     this.phaseTitle.setText(this.phaseLabel('quantity'));
-    this.qz = { energy: 1, drainMul: 1, correct: 0, answered: 0, burst: false, burstPresses: 0, burstTimer: 0 };
+    this.qz = { energy: 1, drainMul: 1, correct: 0, answered: 0, burst: false, burstPresses: 0, burstTimer: 0, bursts: 0 };
     game.stats.stats = JSON.parse(JSON.stringify(this.phaseSnapshot));
     this.refreshStrip();
     this.refreshFatigue();
+    this.qzEx = this.exercises[0];
     const ex = this.qzEx;
     const names = ex.muscles.map((m) => PHYSICAL_LABEL[m]).join(', ');
     this.banner(
       this.phaseLabel('quantity'),
-      `${BOSS_LINES.quantityHint} ${BOSS_LINES.quantityCats}\nBài tập: ${ex.name} (−1 ${names} mỗi lượt) · ${BOSS_LINES.drainRule}\nCần ${QZ.needCorrect} câu đúng trước khi thanh Năng lượng cạn.`,
+      `${BOSS_LINES.quantityHint} ${BOSS_LINES.quantityCats}\nMở màn: ${ex.name} (−1 ${names}); các lần bùng nổ sau xoay vòng bài tập khác · ${BOSS_LINES.drainRule}\nCần ${QZ.needCorrect} câu đúng trước khi thanh Năng lượng cạn.`,
       () => {
         this.panelBg();
         this.qzBar = this.add.graphics();
@@ -405,7 +409,7 @@ export class BossScene extends Phaser.Scene {
         this.phaseRoot.add(this.qzQuiz);
         this.unbinders.push(bindNumberKeys(this, (i) => { if (!this.qz.burst) this.qzQuiz?.choose(i); }));
         this.unbinders.push(bindAction(this, () => this.qzPress()));
-        this.actionBtn = new ActionButton(this, () => this.qzPress(), `${ex.name.toUpperCase()}!`, GAME_WIDTH - 130, GAME_HEIGHT - 50, { w: 220, h: 64 });
+        this.actionBtn = new ActionButton(this, () => this.qzPress(), 'BÙNG NỔ!', GAME_WIDTH - 130, GAME_HEIGHT - 50, { w: 220, h: 64 });
         this.actionBtn.setVisible(false);
         this.qzRefresh();
         // mở màn bằng một lượt tập
@@ -445,6 +449,9 @@ export class BossScene extends Phaser.Scene {
   }
 
   private qzStartBurst(): void {
+    // mỗi lần bùng nổ dùng một bài tập khác (xoay vòng), lần đầu luôn là exercises[0]
+    this.qzEx = this.exercises[this.qz.bursts % this.exercises.length];
+    this.qz.bursts++;
     this.qz.burst = true;
     this.qz.burstPresses = 0;
     this.qz.burstTimer = QZ.burstMs;
@@ -521,20 +528,16 @@ export class BossScene extends Phaser.Scene {
     this.boss.setTexture('boss-2');
     this.bossGlow.setFillStyle(0xef476f, 0.18);
     this.phaseTitle.setText(this.phaseLabel('struggle'));
-    this.sp = { timer: SP.totalMs, reps: 0, correct: 0, qTimer: SP.questionMs, qActive: false };
+    this.sp = { timer: SP.totalMs, round: 0, reps: 0, qDone: false, qTimer: SP.questionMs, qActive: false };
     game.stats.stats = JSON.parse(JSON.stringify(this.phaseSnapshot));
     this.refreshStrip();
     this.refreshFatigue();
-    const ex = this.spEx;
-    const names = ex.muscles.map((m) => PHYSICAL_LABEL[m]).join(', ');
+    const list = this.spRounds.map((ex, i) => `Cặp ${i + 1}: ${ex.name} (−1 ${ex.muscles.map((m) => PHYSICAL_LABEL[m]).join(', ')})`).join(' · ');
     this.banner(
       this.phaseLabel('struggle'),
-      `${BOSS_LINES.struggleHint} ${BOSS_LINES.struggleCats}\nBài tập: ${ex.name} — cả lượt tập tiêu hao −1 ${names}; mỗi rep TRƯỢT phạt −1 mọi nhóm cơ khác. Mỗi câu hỏi −1 khối đó, sai → −1 mọi khối khác.\nCần ${SP.needReps} rep (Good/Perfect) VÀ ${SP.needCorrect} câu đúng trong ${SP.totalMs / 1000}s.`,
+      `${BOSS_LINES.struggleHint} ${BOSS_LINES.struggleCats}\n${SP.rounds} cặp (bài tập ${SP.repsPerRound} rep Good/Perfect + 1 câu đúng), mỗi cặp một bài tập: ${list}.\nMỗi lượt bài tập tiêu hao khi bắt đầu cặp; rep TRƯỢT phạt −1 mọi nhóm cơ khác; câu hỏi −1 khối đó, sai → −1 mọi khối khác. Tổng ${SP.totalMs / 1000}s.`,
       () => {
         this.panelBg();
-        this.setAvatar(POSES[ex.id][0]);
-        // cả lượt tập tiêu hao 1 lần khi bắt đầu
-        this.drainPhysical(ex.muscles, false, AVATAR_X + 120, ARENA_H - 50);
         const g = this.add.graphics();
         g.fillStyle(C.borderHex, 1).fillRect(GAME_WIDTH / 2 - 2, PANEL_Y + 4, 4, GAME_HEIGHT - PANEL_Y - 18);
         this.phaseRoot.add(g);
@@ -542,7 +545,8 @@ export class BossScene extends Phaser.Scene {
         this.phaseRoot.add(this.spG);
         this.spTimer = txt(this, GAME_WIDTH / 2, 34, '', 24, C.gold, { stroke: '#000', strokeThickness: 4 }).setOrigin(0.5, 0).setDepth(61);
         this.phaseRoot.add(this.spTimer);
-        this.phaseRoot.add(txt(this, 250, PANEL_Y + 14, `THỂ CHẤT — ${ex.name.toUpperCase()}`, 20, C.orange).setOrigin(0.5));
+        this.spTitleLeft = txt(this, 250, PANEL_Y + 14, '', 20, C.orange).setOrigin(0.5);
+        this.phaseRoot.add(this.spTitleLeft);
         this.spLeft = txt(this, 250, PANEL_Y + 40, '', 20, C.white).setOrigin(0.5);
         this.phaseRoot.add(this.spLeft);
         this.phaseRoot.add(txt(this, 250, PANEL_Y + 64, 'SPACE khi con trỏ vào vùng XANH', 15, C.cream).setOrigin(0.5));
@@ -554,7 +558,8 @@ export class BossScene extends Phaser.Scene {
 
         this.spEngine = new TimingEngine({ mode: 'timing', repsRequired: 999, timingSpeed: 0.8 });
         this.spEngine.on('rep', (grade) => {
-          if (this.phase !== 'struggle') return;
+          if (this.phase !== 'struggle' || this.sp.reps >= SP.repsPerRound) return;
+          const ex = this.spRounds[this.sp.round];
           if (grade === 'bad') {
             this.penaltyOthers(ex.muscles, AVATAR_X + 120, ARENA_H - 50);
             this.playerHit();
@@ -563,7 +568,7 @@ export class BossScene extends Phaser.Scene {
             this.sp.reps++;
             grade === 'perfect' ? Sfx.perfect() : Sfx.good();
             floatText(this, 250, PANEL_Y + 100, grade === 'perfect' ? 'PERFECT!' : 'GOOD', grade === 'perfect' ? C.green : C.gold, 24);
-            this.animateExercise(ex, () => { if (this.phase === 'struggle') this.setAvatar(POSES[ex.id][0]); });
+            this.animateExercise(ex, () => { if (this.phase === 'struggle') this.setAvatar(POSES[this.spRounds[this.sp.round].id][0]); });
             this.sweat.explode(3, AVATAR_X, AVATAR_Y - 140);
             this.bossHit();
           }
@@ -573,15 +578,25 @@ export class BossScene extends Phaser.Scene {
         this.unbinders.push(bindAction(this, () => this.spEngine?.press()));
         this.unbinders.push(bindNumberKeys(this, (i) => this.spQuiz?.choose(i)));
         this.actionBtn = new ActionButton(this, () => this.spEngine?.press(), 'KÉO!', 250, GAME_HEIGHT - 52, { h: 60 });
-        this.spAsk();
-        this.spRefresh();
+        this.spBeginRound();
       },
     );
   }
 
+  /** Bắt đầu một cặp: bài tập mới (tiêu hao 1 lần) + câu hỏi mới */
+  private spBeginRound(): void {
+    const ex = this.spRounds[this.sp.round];
+    this.sp.reps = 0;
+    this.sp.qDone = false;
+    this.spTitleLeft.setText(`CẶP ${this.sp.round + 1}/${SP.rounds} — ${ex.name.toUpperCase()}`);
+    this.setAvatar(POSES[ex.id][0]);
+    this.drainPhysical(ex.muscles, false, AVATAR_X + 120, ARENA_H - 50);
+    this.spAsk();
+    this.spRefresh();
+  }
+
   private spAsk(): void {
-    if (!this.spQuiz || this.phase !== 'struggle') return;
-    if (this.sp.correct >= SP.needCorrect) return;
+    if (!this.spQuiz || this.phase !== 'struggle' || this.sp.qDone) return;
     this.sp.qTimer = SP.questionMs;
     this.sp.qActive = true;
     const q = this.nextQuestion('struggle');
@@ -590,7 +605,7 @@ export class BossScene extends Phaser.Scene {
     this.spQuiz.show(q, (_i, correct) => {
       this.sp.qActive = false;
       if (correct) {
-        this.sp.correct++;
+        this.sp.qDone = true;
         Sfx.correct();
         this.bossHit();
       } else {
@@ -605,17 +620,26 @@ export class BossScene extends Phaser.Scene {
   }
 
   private spRefresh(): void {
-    this.spLeft.setText(`Rep: ${this.sp.reps} / ${SP.needReps}${this.sp.reps >= SP.needReps ? '  ✔' : ''}`);
-    this.spRight.setText(`Đúng: ${this.sp.correct} / ${SP.needCorrect}${this.sp.correct >= SP.needCorrect ? '  ✔' : ''}`);
+    const done = this.sp.reps >= SP.repsPerRound;
+    this.spLeft.setText(`Rep: ${this.sp.reps} / ${SP.repsPerRound}${done ? '  ✔' : ''}`);
+    this.spRight.setText(`Câu hỏi cặp ${this.sp.round + 1}: ${this.sp.qDone ? 'ĐÚNG  ✔' : 'chưa xong'}`);
   }
 
+  /** Trả về true nếu cặp hiện tại đã xong (đã chuyển cặp / qua phase) */
   private spCheck(): boolean {
     if (this.phase !== 'struggle') return true;
-    if (this.sp.reps >= SP.needReps && this.sp.correct >= SP.needCorrect) {
-      this.passPhase('struggle', 'HAI MẶT ĐỐI LẬP ĐÃ THỐNG NHẤT!');
+    if (this.sp.reps < SP.repsPerRound || !this.sp.qDone) return false;
+    if (this.sp.round + 1 < SP.rounds) {
+      this.sp.round++;
+      this.sp.reps = SP.repsPerRound; // khoá rep tới khi cặp mới bắt đầu
+      this.sp.qDone = true;
+      Sfx.combo();
+      floatText(this, GAME_WIDTH / 2, PANEL_Y + 110, `CẶP ${this.sp.round} XONG — đổi bài tập!`, C.gold, 26);
+      this.time.delayedCall(900, () => { if (this.phase === 'struggle') this.spBeginRound(); });
       return true;
     }
-    return false;
+    this.passPhase('struggle', 'HAI MẶT ĐỐI LẬP ĐÃ THỐNG NHẤT!');
+    return true;
   }
 
   private spDraw(): void {

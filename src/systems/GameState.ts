@@ -1,6 +1,7 @@
 import { BALANCE, KNOWLEDGE_KEYS } from '../data/balance';
 import { dayDiary } from '../data/dialogue';
 import type { Badges, DayState, KnowledgeKey, SaveData, Weather } from '../data/types';
+import { setAvatarHabits } from '../gfx/Avatar';
 import { SaveSystem } from './SaveSystem';
 import { StatsManager } from './StatsManager';
 
@@ -59,7 +60,20 @@ class GameStateImpl {
     this.newGamePlus = ngp;
     this.bossAttempts = 0;
     this.lastBossResult = null;
+    this.syncHabits();
     this.save();
+  }
+
+  /** Thói quen: số ngày đã qua không học / không tập (từ nhật ký) → ngoại hình nhân vật */
+  habits(): { noStudyDays: number; noGymDays: number } {
+    return {
+      noStudyDays: this.day.log.filter((r) => r.study === 0).length,
+      noGymDays: this.day.log.filter((r) => r.gym === 0).length,
+    };
+  }
+
+  private syncHabits(): void {
+    setAvatarHabits(this.habits());
   }
 
   load(): boolean {
@@ -77,6 +91,7 @@ class GameStateImpl {
     this.phase = d.phase;
     this.newGamePlus = d.newGamePlus;
     this.bossAttempts = d.bossAttempts ?? 0;
+    this.syncHabits();
     return true;
   }
 
@@ -149,6 +164,7 @@ class GameStateImpl {
     }
     const diary = dayDiary(d.currentDay, d.gymToday, d.studyToday, d.weather);
     d.log.push({ day: d.currentDay, gym: d.gymToday, study: d.studyToday, diary });
+    this.syncHabits();
     this.updateBadges();
     const goBoss = d.currentDay >= BALANCE.totalDays;
     if (goBoss) {

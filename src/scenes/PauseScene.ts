@@ -108,7 +108,7 @@ export class PauseScene extends Phaser.Scene {
     const m = modal(this, GAME_WIDTH - 120, GAME_HEIGHT - 80, 100);
     const lines = [
       `MỤC TIÊU: ${BALANCE.totalDays} ngày rèn luyện, mỗi ngày ${BALANCE.pointsPerDay} ĐIỂM ĐẦU NGÀY (đồng hồ cát). Phải tiêu HẾT mới sang ngày.`,
-      'Ngày nào KHÔNG học → đầu nhỏ lại: mỗi khối kiến thức −1.',
+      'Ngày nào KHÔNG học → mỗi khối kiến thức −1 và đầu nhỏ đi 1 cỡ (≥2 ngày: mặt đờ đẫn). KHÔNG tập → cơ xẹp (≥2 ngày: bụng phệ).',
       '',
       'WHEYSTATION: chọn nhóm cơ → mini-game 6 rep → +1 điểm nhóm cơ. Mỗi bài một cơ chế riêng:',
       '   Ngực bấm liên tục · Vai canh thời điểm · Lưng giữ & thả · Tay bấm đúng tay chỉ định A/D · Bụng đúng nhịp · Chân chuỗi mũi tên.',

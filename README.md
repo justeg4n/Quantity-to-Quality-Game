@@ -21,11 +21,11 @@ Yêu cầu Node.js ≥ 18.
 
 | | |
 |---|---|
-| Thời gian | 4 ngày × 10 điểm đầu ngày = **40 điểm**. Bắt buộc tiêu hết điểm mới được sang ngày. Ngày nào **không học** → "đầu nhỏ lại": mỗi khối kiến thức −1 (đầu nhân vật to/nhỏ theo tổng kiến thức). |
+| Thời gian | 4 ngày × 10 điểm đầu ngày = **40 điểm**. Bắt buộc tiêu hết điểm mới được sang ngày. Ngày nào **không học** → "đầu nhỏ lại": mỗi khối kiến thức −1; ngoài ra mỗi ngày bỏ học đầu nhân vật nhỏ đi 1 cỡ (học bù ngày cuối không kéo lại), ≥ 2 ngày bỏ học → mặt đờ đẫn (mắt lệch, há miệng chảy dãi). Ngày **không tập** → cơ xẹp 1 mức, ≥ 2 ngày → bụng phệ. Chỉ khi học và tập đều thì cơ thể mới cân đối. |
 | WheyStation | Chọn 1 trong 6 nhóm cơ → mini-game **6 rep**, mỗi bài một cơ chế riêng (Ngực: bấm liên tục · Vai: canh thời điểm · Lưng: giữ & thả · Tay: bấm đúng tay chỉ định ngẫu nhiên · Bụng: đúng nhịp · Chân: chuỗi mũi tên) → **+1** điểm nhóm cơ. Nhân vật pixel to dần đúng nhóm cơ đã tập. |
 | Athens | Chọn 1 trong 6 khối kiến thức → **2 câu trắc nghiệm** (48 câu trong ngân hàng) → **+1** điểm khối đó, hiện đáp án + giải thích + ví dụ gym khi sai. |
 | Combo | 3 rep Perfect liên tiếp → combo; 2 combo → +1 điểm phụ trội, lượt tập đó nhận **+2** (luôn phải tập đủ 6 rep). Đúng cả 2 câu → huy hiệu *Triết gia* trong ngày. |
-| Boss | Màn hình chia đôi: trên là nhân vật đối đầu vòng xoáy khổng lồ (đổ mồ hôi, mệt dần khi bị tiêu hao), dưới là câu hỏi / thử thách. 3 phase: **Lượng đổi → Chất đổi** (bùng nổ thể lực + câu hỏi) và **Đấu tranh các mặt đối lập** (split-screen timing + quiz đếm giờ) xuất hiện theo **thứ tự ngẫu nhiên**, rồi **Phủ định của phủ định** (3 bài tập ×2 + đề 5 câu). Bài tập của mỗi phase (Push-up / Lat Pull Down / Squat) và câu hỏi cũng ngẫu nhiên mỗi trận. Ở 2 phase đầu, mỗi lượt tập trừ 1 điểm các nhóm cơ liên quan và mỗi câu hỏi trừ 1 điểm khối đó; thất bại / trả lời sai trừ thêm 1 ở **mọi** nhóm còn lại. Phase cuối dùng phần còn lại sau tiêu hao. |
+| Boss | Màn hình chia đôi: trên là nhân vật đối đầu vòng xoáy khổng lồ (đổ mồ hôi, mệt dần khi bị tiêu hao), dưới là câu hỏi / thử thách. 3 phase: **Lượng đổi → Chất đổi** (bùng nổ thể lực + câu hỏi) và **Đấu tranh các mặt đối lập** (2 cặp: bài tập canh thời điểm 3 rep + 1 câu hỏi đếm giờ, mỗi cặp một bài tập) xuất hiện theo **thứ tự ngẫu nhiên**, rồi **Phủ định của phủ định** (3 bài tập ×2 + đề 5 câu). Bài tập của mỗi phase (Push-up / Lat Pull Down / Squat) và câu hỏi cũng ngẫu nhiên mỗi trận. Ở 2 phase đầu, mỗi lượt tập trừ 1 điểm các nhóm cơ liên quan và mỗi câu hỏi trừ 1 điểm khối đó; thất bại / trả lời sai trừ thêm 1 ở **mọi** nhóm còn lại. Phase cuối dùng phần còn lại sau tiêu hao. |
 
 ### Công thức thắng/thua — SPOILER (cân bằng lõi — `src/data/balance.ts`)
 
@@ -37,8 +37,8 @@ Phase 3 yêu cầu (trên chỉ số CÒN LẠI sau Phase 1–2):
   AND mỗi khối kiến thức (Chất, Lượng, QH Lượng–Chất, Độ, Điểm nút & Bước nhảy, Vận dụng) ≥ 2
 Tiêu hao tối thiểu ở 2 phase đầu (chơi hoàn hảo; bài tập X, Y ngẫu nhiên trong 3 bài):
   "Lượng đổi":  1 lượt bài X (−1 các nhóm cơ của X) + 2 câu hỏi (−1 khối/câu)
-  "Đấu tranh":  1 lượt bài Y gồm 3 rep (−1 các nhóm cơ của Y, tính 1 lần cho cả lượt; mỗi rep trượt phạt −1 mọi nhóm cơ khác) + 2 câu hỏi (−1 khối/câu)
-Xấu nhất mỗi nhóm cơ: Ngực/Vai/Lưng/Chân/Bụng ≥ 3, Tay ≥ 6 (dùng ở 2 bài)
+  "Đấu tranh":  2 cặp, mỗi cặp = 1 lượt bài Y/Z gồm 3 rep (−1 các nhóm cơ, tính 1 lần cho cả lượt; mỗi rep trượt phạt −1 mọi nhóm cơ khác) + 1 câu hỏi (−1 khối/câu)
+X, Y, Z là 3 bài xáo thứ tự → cả trận dùng mỗi bài đúng 1 lần: Ngực/Vai/Lưng/Chân/Bụng ≥ 3, Tay ≥ 6 (dùng ở 2 bài)
 => Tối thiểu để chắc thắng 21 (gym) + 16 (học) = 37/40 điểm, còn 3 điểm dự phòng.
 ```
 

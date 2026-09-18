@@ -57,8 +57,15 @@ export class DayEndScene extends Phaser.Scene {
     summary.add(txt(this, px0 + 24, py0 + 60, `Điểm đã dùng:  🏋 Gym ${gymN}   ·   📖 Học ${studyN}`, 22, C.cream));
     if (studyN === 0) {
       // không học cả ngày → đầu nhỏ lại
-      const warn = forgot.length ? `Đầu nhỏ lại: ${forgot.map((k) => KNOWLEDGE_SHORT[k]).join(', ')} −1.` : 'Đầu nhỏ lại (chưa có gì để quên...).';
+      const h = game.habits();
+      const warn = (forgot.length ? `Đầu nhỏ lại: ${forgot.map((k) => KNOWLEDGE_SHORT[k]).join(', ')} −1.` : 'Đầu nhỏ lại (chưa có gì để quên...).') + (h.noStudyDays >= 2 ? ` Đã ${h.noStudyDays} ngày bỏ học — mặt đờ đẫn rồi!` : '');
       const t = txt(this, px0 + 24, py0 + 92, `${dayFlavor(gymN, studyN)} ${warn}`, 18, C.red, { wordWrap: { width: 470 } });
+      summary.add(t);
+      this.tweens.add({ targets: t, alpha: 0.5, duration: 500, yoyo: true, repeat: -1 });
+    } else if (gymN === 0) {
+      // không tập cả ngày → cơ xẹp (ngoại hình), bỏ tập nhiều ngày → bụng phệ
+      const h = game.habits();
+      const t = txt(this, px0 + 24, py0 + 92, `${dayFlavor(gymN, studyN)} Cơ bắp xẹp xuống.${h.noGymDays >= 2 ? ` Đã ${h.noGymDays} ngày bỏ tập — bụng phệ rồi!` : ''}`, 18, C.orange, { wordWrap: { width: 470 } });
       summary.add(t);
       this.tweens.add({ targets: t, alpha: 0.5, duration: 500, yoyo: true, repeat: -1 });
     } else {
