@@ -21,7 +21,7 @@ Yêu cầu Node.js ≥ 18.
 
 | | |
 |---|---|
-| Thời gian | 4 ngày × 10 điểm đầu ngày = **40 điểm**. Bắt buộc tiêu hết điểm mới được sang ngày. Ngày nào **không học** → "đầu nhỏ lại": mỗi khối kiến thức −1; ngoài ra mỗi ngày bỏ học đầu nhân vật nhỏ đi 1 cỡ (học bù ngày cuối không kéo lại), ≥ 2 ngày bỏ học → mặt đờ đẫn (mắt lệch, há miệng chảy dãi). Ngày **không tập** → cơ xẹp 1 mức, ≥ 2 ngày → bụng phệ. Học càng nhiều đầu càng to (tới 12 px), ≥ 10 điểm kiến thức đeo kính, ≥ 16 tóc bạc. Chỉ khi học và tập đều thì cơ thể mới cân đối. |
+| Thời gian | 4 ngày × 10 điểm đầu ngày = **40 điểm**. Bắt buộc tiêu hết điểm mới được sang ngày. Ngày nào **không học** → "đầu nhỏ lại": mỗi khối kiến thức −1; ngoài ra mỗi ngày bỏ học đầu nhân vật nhỏ đi 1 cỡ (học bù ngày cuối không kéo lại), ≥ 2 ngày bỏ học → mặt đờ đẫn (mắt lệch, há miệng chảy dãi). Ngày **không tập** → cơ xẹp 1 mức, ≥ 2 ngày → bụng phệ. Học càng nhiều đầu càng to (tới 12 px) và mang theo sách (≥ 6 điểm: 1 cuốn · ≥ 10: kính cận + lộ trang sách · ≥ 16: tóc bạc + xếp chồng 2 cuốn), càng lúc càng giống giáo sư. Chỉ khi học và tập đều thì cơ thể mới cân đối. |
 | WheyStation | Chọn 1 trong 6 nhóm cơ → mini-game **6 rep**, mỗi bài một cơ chế riêng (Ngực: bấm liên tục · Vai: canh thời điểm · Lưng: giữ & thả · Tay: bấm đúng tay chỉ định ngẫu nhiên · Bụng: đúng nhịp · Chân: chuỗi mũi tên) → **+1** điểm nhóm cơ. Nhân vật pixel to dần đúng nhóm cơ đã tập. |
 | Athens | Chọn 1 trong 6 khối kiến thức → **2 câu trắc nghiệm** (48 câu trong ngân hàng) → **+1** điểm khối đó, hiện đáp án + giải thích + ví dụ gym khi sai. |
 | Combo | 3 rep Perfect liên tiếp → combo; 2 combo → +1 điểm phụ trội, lượt tập đó nhận **+2** (luôn phải tập đủ 6 rep). Đúng cả 2 câu → huy hiệu *Triết gia* trong ngày. |

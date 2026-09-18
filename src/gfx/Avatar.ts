@@ -28,7 +28,11 @@ const SKIN = 0xf1c27d;
 const SKIN_D = 0xc68642;
 const HAIR = 0x2b1d0e;
 const HAIR_GRAY = 0xd8d8d8; // tóc bạc của học giả
-const GLASS = 0x333333;
+const GLASS = 0x5b6b7a; // gọng kính kim loại — nhạt hơn tóc/mắt để không giống kính râm
+const BOOK_COVER = 0x7a3b2e;
+const BOOK_COVER2 = 0x2f4a7a;
+const BOOK_PAGE = 0xf6ecd9;
+const BOOK_RIBBON = 0xe0b04a;
 const TANK = 0x1d3557;
 const SHORTS = 0x222b45;
 const SHOE = 0x111111;
@@ -65,7 +69,15 @@ export function totalKnowledge(stats: PlayerStats): number {
 }
 
 /** Ngưỡng "học giả": đeo kính từ 10 điểm kiến thức, tóc bạc từ 16 */
-export const SCHOLAR = { glasses: 10, grayHair: 16 };
+export const SCHOLAR = { book: 6, glasses: 10, grayHair: 16 };
+
+/** Mức sách mang theo 0..3 theo tổng kiến thức: càng học nhiều càng giống giáo sư */
+export function bookTier(know: number): 0 | 1 | 2 | 3 {
+  if (know >= SCHOLAR.grayHair) return 3;
+  if (know >= SCHOLAR.glasses) return 2;
+  if (know >= SCHOLAR.book) return 1;
+  return 0;
+}
 
 /** Cỡ đầu (đơn vị pixel-art): 6 (rỗng) → 12 (uyên bác, +1 mỗi 3 điểm kiến thức), trừ 1 cỡ mỗi ngày bỏ học, tối thiểu 5. */
 export function headSize(stats: PlayerStats, habits: Habits = currentHabits): number {
@@ -118,7 +130,7 @@ export function avatarKey(stats: PlayerStats, pose: Pose, habits: Habits = curre
   const p = stats.physical;
   const l = [p.nguc, p.vai, p.lung, p.tay, p.bung, p.chan].map((v) => muscleLevel(v, habits)).join('');
   const k = totalKnowledge(stats);
-  return `av-${pose}-${l}-h${headSize(stats, habits)}${isDerp(habits) ? 'd' : ''}${habits.noGymDays >= 2 ? 'b' : ''}${k >= SCHOLAR.glasses ? 'g' : ''}${k >= SCHOLAR.grayHair ? 's' : ''}`;
+  return `av-${pose}-${l}-h${headSize(stats, habits)}${isDerp(habits) ? 'd' : ''}${habits.noGymDays >= 2 ? 'belly' : ''}${k >= SCHOLAR.glasses ? 'g' : ''}${k >= SCHOLAR.grayHair ? 's' : ''}-bk${bookTier(k)}`;
 }
 
 /** Đảm bảo texture avatar tồn tại; trả về key. u = kích thước 1 pixel-art (px). `habits` mặc định = thói quen của người chơi. */
@@ -130,6 +142,21 @@ export function ensureAvatar(scene: Phaser.Scene, stats: PlayerStats, pose: Pose
   g.generateTexture(key, AV_W * u, AV_H * u);
   g.destroy();
   return key;
+}
+
+/** Sách cầm tay: tier 1 = 1 cuốn đóng gáy, 2 = lộ trang giấy, 3 = 2 cuốn xếp chồng + dây đánh dấu */
+function drawBook(g: Phaser.GameObjects.Graphics, hx: number, hy: number, tier: number, u: number): void {
+  if (tier >= 3) {
+    px(g, BOOK_COVER2, hx - 1, hy - 1, 3, 2, u);
+    px(g, BOOK_COVER, hx, hy + 1, 3, 2, u);
+    px(g, BOOK_PAGE, hx + 2, hy + 1, 1, 2, u);
+    px(g, BOOK_RIBBON, hx + 1, hy + 3, 1, 2, u);
+  } else if (tier === 2) {
+    px(g, BOOK_COVER, hx, hy, 3, 3, u);
+    px(g, BOOK_PAGE, hx + 3, hy, 1, 3, u);
+  } else {
+    px(g, BOOK_COVER, hx, hy, 3, 3, u);
+  }
 }
 
 function seg(g: Phaser.GameObjects.Graphics, color: number, x0: number, y0: number, x1: number, y1: number, t: number, u: number): void {
@@ -253,6 +280,15 @@ export function drawAvatar(g: Phaser.GameObjects.Graphics, stats: PlayerStats, p
   drawArm(shoulderR, armR);
   drawArm(shoulderL, armL);
 
+  // ─── Sách trên tay — càng học nhiều càng giống giáo sư (chỉ ở tư thế đời thường) ───
+  const calmPose = pose === 'idle' || pose === 'walk1' || pose === 'walk2' || pose === 'flex' || pose === 'happy' || pose === 'tired';
+  if (calmPose) {
+    const tier = bookTier(know);
+    if (tier > 0) {
+      drawBook(g, shoulderL[0] + armL.hand[0] - 1, shoulderL[1] + armL.hand[1] - 1, tier, u);
+    }
+  }
+
   // ─── Cổ, đầu ───
   px(g, SKIN, cx - 1, neckY, 2 + Math.min(L.vai, 1), 2, u);
   // đầu: cỡ theo kiến thức, neo ở cổ (đầu nhỏ thì ngắn hơn, không "lơ lửng")
@@ -277,14 +313,13 @@ export function drawAvatar(g: Phaser.GameObjects.Graphics, stats: PlayerStats, p
     px(g, EYE, hx + 1, eyeY, 1, tiredEyes ? 1 : 2, u);
     px(g, EYE, hx + hs - 2, eyeY, 1, tiredEyes ? 1 : 2, u);
     if (glasses && hs >= 7) {
-      // kính: gọng vuông quanh mỗi mắt + cầu kính ở giữa
+      // kính cận mỏng (không phải kính râm): chỉ viền trên/dưới hở + cầu kính, mắt vẫn lộ rõ ở giữa
+      const eyeH = tiredEyes ? 1 : 2;
       for (const gx of [hx, hx + hs - 3]) {
-        px(g, GLASS, gx, eyeY - 1, 3, 1, u);
-        px(g, GLASS, gx, eyeY + 2, 3, 1, u);
-        px(g, GLASS, gx, eyeY, 1, 2, u);
-        px(g, GLASS, gx + 2, eyeY, 1, 2, u);
+        px(g, GLASS, gx, eyeY - 1, 3, 1, u); // viền trên
+        px(g, GLASS, gx, eyeY + eyeH, 3, 1, u); // viền dưới
       }
-      px(g, GLASS, hx + 3, eyeY, hs - 6, 1, u);
+      px(g, GLASS, hx + 3, eyeY, hs - 6, 1, u); // cầu kính giữa 2 mắt
     }
   }
   // miệng
