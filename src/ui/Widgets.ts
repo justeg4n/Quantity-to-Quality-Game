@@ -351,6 +351,68 @@ export function modal(scene: Phaser.Scene, w: number, h: number, depth = 90): { 
   return { root, close: () => root.destroy() };
 }
 
+/**
+ * Vùng văn bản dài cuộn được bằng lăn chuột / kéo, có thanh trượt. Toạ độ (x, y) là góc trên-trái
+ * TRONG container `root` (thường là modal). Trả về hàm huỷ listener (gọi khi đóng modal).
+ */
+export function scrollText(
+  scene: Phaser.Scene,
+  root: Phaser.GameObjects.Container,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  text: string,
+  size = 19,
+): () => void {
+  const body = txt(scene, x, y, text, size, C.cream, { lineSpacing: 3, wordWrap: { width: w - 24 } });
+  root.add(body);
+  // mask theo toạ độ thế giới (container ở tâm màn hình, không scale sau khi tween xong)
+  const maskG = scene.make.graphics({ x: 0, y: 0 }, false);
+  maskG.fillStyle(0xffffff, 1).fillRect(root.x + x, root.y + y, w, h);
+  body.setMask(maskG.createGeometryMask());
+  const bar = scene.add.graphics();
+  root.add(bar);
+  const maxScroll = Math.max(0, body.height - h);
+  let scroll = 0;
+  const draw = () => {
+    body.y = y - scroll;
+    bar.clear();
+    if (maxScroll <= 0) return;
+    const bx = x + w - 10;
+    bar.fillStyle(C.borderHex, 0.25).fillRect(bx, y, 6, h);
+    const th = Math.max(24, (h * h) / body.height);
+    const ty = y + ((h - th) * scroll) / maxScroll;
+    bar.fillStyle(C.goldHex, 0.9).fillRect(bx, ty, 6, th);
+  };
+  const onWheel = (_p: Phaser.Input.Pointer, _o: unknown, _dx: number, dy: number) => {
+    scroll = Phaser.Math.Clamp(scroll + dy * 0.5, 0, maxScroll);
+    draw();
+  };
+  let dragY: number | null = null;
+  const onDown = (p: Phaser.Input.Pointer) => { dragY = p.y; };
+  const onMove = (p: Phaser.Input.Pointer) => {
+    if (dragY === null || !p.isDown) return;
+    scroll = Phaser.Math.Clamp(scroll - (p.y - dragY), 0, maxScroll);
+    dragY = p.y;
+    draw();
+  };
+  const onUp = () => { dragY = null; };
+  scene.input.on('wheel', onWheel);
+  scene.input.on('pointerdown', onDown);
+  scene.input.on('pointermove', onMove);
+  scene.input.on('pointerup', onUp);
+  draw();
+  if (maxScroll > 0) root.add(txt(scene, x + w / 2, y + h + 4, '▲▼ lăn chuột / kéo để đọc tiếp', 14, C.gray).setOrigin(0.5, 0));
+  return () => {
+    scene.input.off('wheel', onWheel);
+    scene.input.off('pointerdown', onDown);
+    scene.input.off('pointermove', onMove);
+    scene.input.off('pointerup', onUp);
+    maskG.destroy();
+  };
+}
+
 /** Icon đồng hồ cát hiển thị điểm đầu ngày */
 export class PointsHud extends Phaser.GameObjects.Container {
   private icons: Phaser.GameObjects.Image[] = [];

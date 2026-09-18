@@ -10,7 +10,7 @@ import { game } from '../systems/GameState';
 import { Sfx } from '../systems/Sfx';
 import { StatsManager } from '../systems/StatsManager';
 import { promptName } from '../ui/NameInput';
-import { Button, modal, txt } from '../ui/Widgets';
+import { Button, modal, scrollText, txt } from '../ui/Widgets';
 
 export class TitleScene extends Phaser.Scene {
   private sky!: SkyLayer;
@@ -148,7 +148,8 @@ export class TitleScene extends Phaser.Scene {
       '',
       'Mẹo: 3 rep Perfect liên tiếp → combo; 2 combo → +1 điểm phụ trội (lượt đó +2). Đúng cả 2 câu → huy hiệu Triết gia.',
     ];
-    m.root.add(txt(this, -(GAME_WIDTH - 120) / 2 + 24, -(GAME_HEIGHT - 80) / 2 + 20, lines.join('\n'), 19, C.cream, { lineSpacing: 3, wordWrap: { width: GAME_WIDTH - 120 - 48 } }));
-    m.root.add(new Button(this, 0, (GAME_HEIGHT - 80) / 2 - 40, 'ĐÃ HIỂU', () => m.close(), { w: 220 }));
+    // vùng đọc cuộn được, chừa chỗ cho nút ở đáy — nút không che chữ
+    const unbind = scrollText(this, m.root, -(GAME_WIDTH - 120) / 2 + 24, -(GAME_HEIGHT - 80) / 2 + 20, GAME_WIDTH - 120 - 48, GAME_HEIGHT - 80 - 110, lines.join('\n'));
+    m.root.add(new Button(this, 0, (GAME_HEIGHT - 80) / 2 - 36, 'ĐÃ HIỂU', () => { unbind(); m.close(); }, { w: 220, h: 44 }));
   }
 }

@@ -3,7 +3,7 @@ import { C, GAME_HEIGHT, GAME_WIDTH, SCENE } from '../config/constants';
 import { BALANCE, KNOWLEDGE_KEYS, KNOWLEDGE_SHORT, PHYSICAL_KEYS, PHYSICAL_LABEL } from '../data/balance';
 import { game } from '../systems/GameState';
 import { Sfx } from '../systems/Sfx';
-import { Button, StatBar, modal, txt } from '../ui/Widgets';
+import { Button, StatBar, modal, scrollText, txt } from '../ui/Widgets';
 
 /** Các scene cho phép mở menu Esc */
 export const PAUSABLE: string[] = [SCENE.town, SCENE.gym, SCENE.athens, SCENE.exercise, SCENE.quiz, SCENE.dayEnd, SCENE.boss, SCENE.ending];
@@ -122,7 +122,7 @@ export class PauseScene extends Phaser.Scene {
       '',
       'Điều khiển: ← → / WASD di chuyển · SPACE / E vào nhà · SPACE hoặc chạm nút vàng để tập · 1–4 chọn đáp án · Esc menu.',
     ];
-    m.root.add(txt(this, -(GAME_WIDTH - 120) / 2 + 24, -(GAME_HEIGHT - 80) / 2 + 20, lines.join('\n'), 19, C.cream, { lineSpacing: 3, wordWrap: { width: GAME_WIDTH - 120 - 48 } }));
-    m.root.add(new Button(this, 0, (GAME_HEIGHT - 80) / 2 - 40, 'ĐÓNG', () => m.close(), { w: 200 }));
+    const unbind = scrollText(this, m.root, -(GAME_WIDTH - 120) / 2 + 24, -(GAME_HEIGHT - 80) / 2 + 20, GAME_WIDTH - 120 - 48, GAME_HEIGHT - 80 - 110, lines.join('\n'));
+    m.root.add(new Button(this, 0, (GAME_HEIGHT - 80) / 2 - 36, 'ĐÓNG', () => { unbind(); m.close(); }, { w: 200, h: 44 }));
   }
 }

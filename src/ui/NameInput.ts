@@ -38,6 +38,8 @@ export function promptName(scene: Phaser.Scene, onDone: (r: NameResult) => void,
 
   // Phaser giữ "capture" TOÀN CỤC cho SPACE / W A S D / mũi tên (preventDefault) — nếu không gỡ, gõ chữ a, d, s, w
   // vào ô nhập sẽ bị nuốt (không gõ nổi "admin" hay "Quality@123"). Tắt cả plugin lẫn manager trong lúc gõ, khôi phục khi đóng.
+  // Chặn chuột xuyên xuống canvas (bấm vào hộp nhập tên chỗ có nút HƯỚNG DẪN phía sau từng mở luôn bảng hướng dẫn)
+  scene.input.enabled = false;
   const kb = scene.input.keyboard;
   const mgr = kb?.manager;
   const savedCaptures = mgr ? [...mgr.captures] : [];
@@ -47,6 +49,7 @@ export function promptName(scene: Phaser.Scene, onDone: (r: NameResult) => void,
   }
   if (mgr) mgr.enabled = false;
   const close = () => {
+    scene.input.enabled = true;
     if (mgr) mgr.enabled = true;
     if (kb) {
       kb.enabled = true;

@@ -29,6 +29,8 @@ export interface PlayerCurrent {
   newGamePlus: number;
   bossAttempts: number;
   lastWon: boolean | null;
+  /** thời điểm chụp — để gộp nhiều máy lấy bản mới nhất */
+  at?: number;
   /** ngày bỏ học / bỏ tập → vẽ đúng ngoại hình hiện tại */
   habits?: Habits;
   /** các lượt tập/học của ngày đang chơi dở */
@@ -62,7 +64,15 @@ export interface PlayerRecord {
   badges: Badges;
   history: BossRecord[];
   current: PlayerCurrent | null;
+  /** nhân vật của ván gần nhất đã kết thúc */
   finalAvatar?: FinalAvatar | null;
+  /** nhân vật TỐT NHẤT từng đạt (thắng > thua, rồi Điểm NV) — dùng cho bảng xếp hạng, không bị "chơi lại" xoá */
+  bestAvatar?: FinalAvatar | null;
+}
+
+/** Nhân vật đại diện trên bảng xếp hạng */
+export function rankingAvatar(r: PlayerRecord): FinalAvatar | null {
+  return r.bestAvatar ?? r.finalAvatar ?? null;
 }
 
 const KEY = 'q2q-players-v1';
@@ -105,7 +115,7 @@ function fresh(name: string): PlayerRecord {
 
 /** Xếp hạng: thắng nhiều → điểm nhân vật cuối → tổng điểm tốt nhất → chơi gần đây */
 export function rankPlayers(list: PlayerRecord[]): PlayerRecord[] {
-  const score = (r: PlayerRecord) => r.finalAvatar?.score ?? 0;
+  const score = (r: PlayerRecord) => rankingAvatar(r)?.score ?? 0;
   return [...list].sort(
     (a, b) =>
       b.wins - a.wins ||
@@ -166,9 +176,9 @@ export const Players = {
   async fetchRanked(): Promise<{ players: PlayerRecord[]; persistent: boolean } | null> {
     const r = await Api.list();
     if (!r) return null;
-    // hoà bản local vào để máy này luôn thấy chính mình kể cả khi vừa save chưa kịp đẩy
+    // server là nguồn chính; chỉ bổ sung những tên máy này có mà server chưa có (chơi lúc mất mạng)
     const byName = new Map(r.players.map((p) => [p.name, p]));
-    for (const l of this.list()) byName.set(l.name, mergeRecords(byName.get(l.name), l));
+    for (const l of this.list()) if (!byName.has(l.name)) byName.set(l.name, l);
     return { players: rankPlayers([...byName.values()]), persistent: r.persistent };
   },
 

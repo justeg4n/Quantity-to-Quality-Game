@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { C, GAME_HEIGHT, GAME_WIDTH, SCENE } from '../config/constants';
 import { ensureAvatar, totalKnowledge, totalPhysical } from '../gfx/Avatar';
 import { SkyLayer } from '../gfx/Sky';
-import { Players, type PlayerRecord } from '../systems/Players';
+import { Players, rankingAvatar, type PlayerRecord } from '../systems/Players';
 import { Sfx } from '../systems/Sfx';
 import { Button, txt } from '../ui/Widgets';
 
@@ -86,8 +86,8 @@ export class ScoreboardScene extends Phaser.Scene {
     rows.slice(0, 8).forEach((r, i) => {
       const y = 114 + i * rowH;
       if (i % 2 === 0) g.fillStyle(0xffffff, 0.04).fillRect(46, y - 2, GAME_WIDTH - 92, rowH);
-      const fa = r.finalAvatar;
-      // nhân vật cuối cùng (ván gần nhất): thắng → happy, thua → tired; chưa có → bóng mờ
+      const fa = rankingAvatar(r);
+      // nhân vật TỐT NHẤT từng đạt (không đổi khi chơi lại): thắng → happy, thua → tired; chưa có → ?
       if (fa) {
         const key = ensureAvatar(this, fa.stats, fa.won ? 'happy' : 'tired', 1, fa.habits);
         this.add.image(cols[1] + 20, y + rowH - 4, key).setOrigin(0.5, 1);
@@ -97,7 +97,7 @@ export class ScoreboardScene extends Phaser.Scene {
       const nameCol = i === 0 ? C.gold : C.cream;
       txt(this, cols[0], y + 10, `${i + 1}`, 20, nameCol);
       txt(this, cols[2], y + 2, r.name, 20, nameCol);
-      txt(this, cols[2], y + 24, fa ? `${fa.won ? 'THẮNG' : 'THUA'} · ${fmtDate(fa.at)}` : 'chưa hoàn thành ván nào', 13, fa ? (fa.won ? C.green : C.red) : C.gray);
+      txt(this, cols[2], y + 24, fa ? `tốt nhất: ${fa.won ? 'THẮNG' : 'THUA'} · ${fmtDate(fa.at)}` : 'chưa hoàn thành ván nào', 13, fa ? (fa.won ? C.green : C.red) : C.gray);
       txt(this, cols[3], y + 10, `${r.wins}`, 20, C.cream);
       txt(this, cols[4], y + 10, `${r.games}`, 20, C.cream);
       txt(this, cols[5], y + 10, fa ? `${fa.score}` : '—', 20, C.gold);
@@ -106,7 +106,7 @@ export class ScoreboardScene extends Phaser.Scene {
       txt(this, cols[8], y + 10, badgeIcons(r.badges), 18, C.cream);
       txt(this, cols[9], y + 10, fmtDate(r.lastPlayedAt), 15, C.gray);
     });
-    txt(this, 46, GAME_HEIGHT - 72, 'Xếp theo: trận thắng → Điểm NV (thể chất + kiến thức của nhân vật cuối) → Gym*/Học* (điểm cao nhất một ván).   👑 Vô địch · ⚖ Cân bằng · 📖 Học bá · 💪 Lực sĩ', 13, C.gray, { wordWrap: { width: GAME_WIDTH - 92 } });
+    txt(this, 46, GAME_HEIGHT - 72, 'Nhân vật hiển thị = ván TỐT NHẤT từng đạt (không đổi khi chơi lại). Xếp theo: trận thắng → Điểm NV (thể chất + kiến thức) → Gym*/Học*.   👑 Vô địch · ⚖ Cân bằng · 📖 Học bá · 💪 Lực sĩ', 13, C.gray, { wordWrap: { width: GAME_WIDTH - 92 } });
   }
 
   private back(): void {

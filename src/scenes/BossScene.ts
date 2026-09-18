@@ -176,7 +176,7 @@ export class BossScene extends Phaser.Scene {
     this.boss = this.add.image(BOSS_X, BOSS_Y, 'boss-1').setScale(1.25).setDepth(1);
     this.tweens.add({ targets: this.boss, angle: 360, duration: 9000, repeat: -1 });
     this.tweens.add({ targets: this.boss, scale: 1.35, duration: 1300, yoyo: true, repeat: -1, ease: 'Sine.InOut' });
-    this.avatar = this.add.image(AVATAR_X, AVATAR_Y, ensureAvatar(this, game.stats.stats, 'idle', 4)).setOrigin(0.5, 1).setDepth(5);
+    this.avatar = this.add.image(AVATAR_X, AVATAR_Y, ensureAvatar(this, this.snapshot, 'idle', 4)).setOrigin(0.5, 1).setDepth(5);
     // mồ hôi: phát ra từ đầu nhân vật, dày dần theo mức mệt mỏi
     this.sweat = this.add.particles(AVATAR_X, AVATAR_Y - 140, 'sweat', {
       speedX: { min: -50, max: 50 },
@@ -271,10 +271,11 @@ export class BossScene extends Phaser.Scene {
   }
 
   /** Đặt tư thế; khi mệt (>50% thể chất đã tiêu hao) tư thế nghỉ chuyển thành 'tired' */
+  /** Ngoại hình trong trận = hình dạng cuối cùng sau 4 ngày (snapshot trước trận), không đổi dù chỉ số bị tiêu hao */
   private setAvatar(pose: Pose): void {
     const f = this.fatigue();
     const p: Pose = pose === 'idle' && f >= 0.5 ? 'tired' : pose;
-    this.avatar.setTexture(ensureAvatar(this, game.stats.stats, p, 4));
+    this.avatar.setTexture(ensureAvatar(this, this.snapshot, p, 4));
   }
 
   /** Cập nhật hiệu ứng mồ hôi / mệt mỏi theo mức tiêu hao hiện tại */
@@ -929,11 +930,11 @@ export class BossScene extends Phaser.Scene {
       this.tweens.add({ targets: [this.boss, this.bossGlow], scale: 0, angle: 1080, alpha: 0, duration: 1500, ease: 'Cubic.In' });
       this.cameras.main.flash(600, 255, 255, 255);
       floatText(this, GAME_WIDTH / 2, 120, 'CHẤT ĐÃ ĐỔI!', C.gold, 48);
-      this.avatar.setTexture(ensureAvatar(this, game.stats.stats, 'happy', 4));
+      this.avatar.setTexture(ensureAvatar(this, this.snapshot, 'happy', 4));
     } else {
       Sfx.lose();
       this.cameras.main.shake(600, 0.01);
-      this.avatar.setTexture(ensureAvatar(this, game.stats.stats, 'tired', 4));
+      this.avatar.setTexture(ensureAvatar(this, this.snapshot, 'tired', 4));
       floatText(this, GAME_WIDTH / 2, 120, 'LƯỢNG CHƯA ĐỦ...', C.red, 40);
     }
     this.time.delayedCall(2200, () => {

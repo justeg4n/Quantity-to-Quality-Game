@@ -37,6 +37,9 @@ export class AdminScene extends Phaser.Scene {
   private status!: Phaser.GameObjects.Text;
   private summary!: Phaser.GameObjects.Text;
   private tab: Tab = 'days';
+  /** tên vừa xoá trong phiên này — lọc khỏi danh sách phòng khi server còn trả bản cache */
+  private deleted = new Set<string>();
+  private loading = false;
 
   constructor() {
     super(SCENE.admin);
@@ -60,12 +63,16 @@ export class AdminScene extends Phaser.Scene {
     this.detail = this.add.container(0, 0);
     this.cameras.main.fadeIn(300, 0, 0, 0);
     void this.reload();
+    // cập nhật "thời gian thực": tự tải lại mỗi 10 giây, giữ nguyên người đang chọn & tab
+    this.time.addEvent({ delay: 10000, loop: true, callback: () => void this.reload() });
   }
 
   private async reload(): Promise<void> {
-    const { players, source } = await loadRanking();
+    if (this.loading) return;
+    this.loading = true;
+    const { players, source } = await loadRanking().finally(() => { this.loading = false; });
     if (!this.scene.isActive(SCENE.admin)) return;
-    this.players = rankPlayers(players);
+    this.players = rankPlayers(players.filter((p) => !this.deleted.has(p.name)));
     this.status.setText(SOURCE_NOTE[source]).setColor(source === 'server' ? C.green : C.orange);
     const games = this.players.reduce((s, r) => s + r.games, 0);
     const wins = this.players.reduce((s, r) => s + r.wins, 0);
@@ -253,11 +260,17 @@ export class AdminScene extends Phaser.Scene {
     m.root.add(txt(this, 0, -55, `Xoá toàn bộ dữ liệu của "${r.name}" (cả trên máy chủ)?`, 21, C.cream, { wordWrap: { width: 500 }, align: 'center' }).setOrigin(0.5));
     m.root.add(new Button(this, -110, 40, 'XOÁ', async () => {
       m.close();
+      this.status.setText(`Đang xoá "${r.name}"...`).setColor(C.orange);
       SaveSystem.clear(r.name);
       const ok = await Players.remove(r.name, ADMIN.password);
-      if (!ok) this.status.setText('⚠ Đã xoá trên máy này; máy chủ không phản hồi.').setColor(C.orange);
+      this.deleted.add(r.name);
       this.selected = null;
-      await this.reload();
+      this.players = this.players.filter((p) => p.name !== r.name);
+      this.renderList();
+      this.renderDetail();
+      if (!ok) this.status.setText('⚠ Đã xoá trên máy này; máy chủ không phản hồi — sẽ thử lại khi tải lại.').setColor(C.orange);
+      else this.status.setText(`✔ Đã xoá "${r.name}" trên máy chủ.`).setColor(C.green);
+      this.time.delayedCall(1500, () => void this.reload());
     }, { w: 200, h: 44, fill: C.redHex }));
     m.root.add(new Button(this, 110, 40, 'HUỶ', () => m.close(), { w: 200, h: 44 }));
   }

@@ -27,6 +27,13 @@ export function mergeRecords(a, b) {
     if (!y) return x;
     return (y.at ?? b.lastPlayedAt ?? 0) >= (x.at ?? a.lastPlayedAt ?? 0) ? y : x;
   };
+  // nhân vật tốt nhất: thắng > thua, rồi Điểm NV cao hơn — không bao giờ bị ván sau kém hơn thay thế
+  const better = (x, y) => {
+    if (!x) return y ?? null;
+    if (!y) return x;
+    if (!!y.won !== !!x.won) return y.won ? y : x;
+    return (y.score ?? 0) > (x.score ?? 0) ? y : x;
+  };
   return /** @type {T} */ ({
     ...older,
     ...newer,
@@ -42,7 +49,8 @@ export function mergeRecords(a, b) {
     maxPhysical: max('maxPhysical'),
     badges,
     history,
-    current: newer.current ?? older.current ?? null,
+    current: pickNewer('current'),
     finalAvatar: pickNewer('finalAvatar'),
+    bestAvatar: better(better(a.bestAvatar, b.bestAvatar), better(a.finalAvatar, b.finalAvatar)),
   });
 }

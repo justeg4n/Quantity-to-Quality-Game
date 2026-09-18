@@ -69,6 +69,7 @@ class GameStateImpl {
       r.maxPhysical = Math.max(r.maxPhysical, stats.totalPhysical());
       (Object.keys(badges) as Array<keyof Badges>).forEach((k) => { if (badges[k]) r.badges[k] = true; });
       r.current = {
+        at: Date.now(),
         phase: this.phase,
         day: this.day.currentDay,
         pointsLeft: this.day.pointsLeft,
@@ -101,6 +102,9 @@ class GameStateImpl {
         habits: this.habits(),
         score: stats.totalPhysical() + stats.totalKnowledge(),
       };
+      // nhân vật tốt nhất: chỉ thay khi thắng hơn / điểm cao hơn
+      const b = r.bestAvatar;
+      if (!b || (won && !b.won) || (won === !!b.won && r.finalAvatar.score > b.score)) r.bestAvatar = r.finalAvatar;
       r.history.push({
         at: Date.now(),
         won,

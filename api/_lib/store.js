@@ -4,43 +4,107 @@ import path from 'node:path';
 /**
  * Kho lưu hồ sơ người chơi — chọn tự động theo biến môi trường sẵn có, ưu tiên:
  *   1) Vercel Blob (@vercel/blob) — kho object storage CỦA CHÍNH Vercel, có gói miễn phí
- *      (Hobby: 1 GB lưu trữ + lượt đọc/ghi hào phóng), bật bằng nút "Blob" trong tab Storage
- *      của project (KHÔNG phải "Marketplace Database Providers" — mục đó mới tính phí).
- *      Vercel tự set biến BLOB_READ_WRITE_TOKEN sau khi tạo, không cần đăng ký dịch vụ ngoài.
- *   2) Upstash Redis REST — chỉ dùng nếu bạn tự tạo tài khoản MIỄN PHÍ trực tiếp tại
- *      upstash.com (gói Free, không qua Vercel Marketplace) rồi tự điền UPSTASH_REDIS_REST_URL
- *      + UPSTASH_REDIS_REST_TOKEN vào Environment Variables của project.
- *   3) File JSON — chỉ dùng khi chạy `npm run dev` cục bộ (không bền vững trên Vercel).
+ *      (Hobby: 1 GB), bật bằng nút "Blob" trong tab Storage của project (KHÔNG phải mục
+ *      "Marketplace Database Providers" tính phí). Vercel tự set BLOB_READ_WRITE_TOKEN.
+ *      MỖI NGƯỜI CHƠI MỘT BLOB riêng (q2q/players/<tên>.json) để ghi người này không
+ *      ghi đè người khác, và xoá là xoá đúng blob đó. Đọc luôn kèm tham số chống cache
+ *      vì CDN của Blob cache tối thiểu 60 giây.
+ *   2) Upstash Redis REST — tự tạo tài khoản MIỄN PHÍ tại upstash.com rồi điền
+ *      UPSTASH_REDIS_REST_URL + UPSTASH_REDIS_REST_TOKEN.
+ *   3) File JSON — chỉ khi chạy `npm run dev` cục bộ (trên Vercel là /tmp, không bền).
  */
 const HASH = 'q2q:players';
-const BLOB_PATH = 'q2q-players.json';
+const BLOB_DIR = 'q2q/players/';
+const LEGACY_BLOB = 'q2q-players.json';
 
 function hasBlob() {
   return !!process.env.BLOB_READ_WRITE_TOKEN;
 }
 
-async function blobReadAll() {
-  const { list } = await import('@vercel/blob');
-  const { blobs } = await list({ prefix: BLOB_PATH, limit: 1 });
-  if (!blobs.length) return {};
-  const r = await fetch(blobs[0].url, { cache: 'no-store' });
-  if (!r.ok) return {};
+function blobPath(name) {
+  return `${BLOB_DIR}${encodeURIComponent(name)}.json`;
+}
+
+/** Đọc nội dung một blob, bỏ qua cache CDN */
+async function blobFetch(url) {
+  const sep = url.includes('?') ? '&' : '?';
+  const opts = { cache: 'no-store', headers: { 'Cache-Control': 'no-cache', Pragma: 'no-cache' } };
+  let r = await fetch(`${url}${sep}nocache=${Date.now()}`, opts);
+  if (!r.ok) r = await fetch(url, opts); // phòng khi CDN không chấp nhận query lạ
+  if (!r.ok) return null;
   try {
     return await r.json();
   } catch {
-    return {};
+    return null;
   }
 }
 
-async function blobWriteAll(all) {
+/** Liệt kê mọi blob trong thư mục người chơi (phân trang) */
+async function blobList(prefix) {
+  const { list } = await import('@vercel/blob');
+  const out = [];
+  let cursor;
+  do {
+    const page = await list({ prefix, cursor, limit: 1000 });
+    out.push(...page.blobs);
+    cursor = page.hasMore ? page.cursor : undefined;
+  } while (cursor);
+  return out;
+}
+
+async function blobAll() {
+  const blobs = await blobList(BLOB_DIR);
+  const recs = await Promise.all(blobs.map((b) => blobFetch(b.url)));
+  const out = {};
+  recs.forEach((r) => {
+    if (r && r.name) out[r.name] = r;
+  });
+  // dữ liệu từ bản cũ (một file chung) — chỉ đọc, dùng cho tên chưa có blob riêng
+  const legacy = await blobList(LEGACY_BLOB);
+  if (legacy.length) {
+    const old = (await blobFetch(legacy[0].url)) || {};
+    for (const [name, rec] of Object.entries(old)) if (!out[name]) out[name] = rec;
+  }
+  return out;
+}
+
+async function blobGet(name) {
+  const blobs = await blobList(blobPath(name));
+  const exact = blobs.find((b) => b.pathname === blobPath(name));
+  if (exact) return blobFetch(exact.url);
+  const legacy = await blobList(LEGACY_BLOB);
+  if (legacy.length) {
+    const old = (await blobFetch(legacy[0].url)) || {};
+    return old[name] ?? null;
+  }
+  return null;
+}
+
+async function blobSet(name, rec) {
   const { put } = await import('@vercel/blob');
-  await put(BLOB_PATH, JSON.stringify(all), {
+  await put(blobPath(name), JSON.stringify(rec), {
     access: 'public',
     contentType: 'application/json',
     addRandomSuffix: false,
     allowOverwrite: true,
-    cacheControlMaxAge: 0,
+    cacheControlMaxAge: 60,
   });
+}
+
+async function blobRemove(name) {
+  const { del, put } = await import('@vercel/blob');
+  const blobs = await blobList(blobPath(name));
+  const urls = blobs.filter((b) => b.pathname === blobPath(name)).map((b) => b.url);
+  if (urls.length) await del(urls);
+  // xoá cả trong file chung cũ nếu còn
+  const legacy = await blobList(LEGACY_BLOB);
+  if (legacy.length) {
+    const old = (await blobFetch(legacy[0].url)) || {};
+    if (old[name]) {
+      delete old[name];
+      await put(LEGACY_BLOB, JSON.stringify(old), { access: 'public', contentType: 'application/json', addRandomSuffix: false, allowOverwrite: true, cacheControlMaxAge: 60 });
+    }
+  }
 }
 
 function redisEnv() {
@@ -88,7 +152,7 @@ export const store = {
   },
   /** @returns {Promise<Record<string, any>>} */
   async all() {
-    if (hasBlob()) return blobReadAll();
+    if (hasBlob()) return blobAll();
     if (redisEnv()) {
       const flat = (await redis(['HGETALL', HASH])) || [];
       const out = {};
@@ -104,30 +168,31 @@ export const store = {
     return fileReadAll();
   },
   async get(name) {
-    if (redisEnv() && !hasBlob()) {
+    if (hasBlob()) return blobGet(name);
+    if (redisEnv()) {
       const v = await redis(['HGET', HASH, name]);
       return v ? JSON.parse(v) : null;
     }
-    return (await this.all())[name] ?? null;
+    return (await fileReadAll())[name] ?? null;
   },
   async set(name, rec) {
-    if (redisEnv() && !hasBlob()) {
+    if (hasBlob()) return blobSet(name, rec);
+    if (redisEnv()) {
       await redis(['HSET', HASH, name, JSON.stringify(rec)]);
       return;
     }
-    const all = await this.all();
+    const all = await fileReadAll();
     all[name] = rec;
-    if (hasBlob()) await blobWriteAll(all);
-    else await fileWriteAll(all);
+    await fileWriteAll(all);
   },
   async remove(name) {
-    if (redisEnv() && !hasBlob()) {
+    if (hasBlob()) return blobRemove(name);
+    if (redisEnv()) {
       await redis(['HDEL', HASH, name]);
       return;
     }
-    const all = await this.all();
+    const all = await fileReadAll();
     delete all[name];
-    if (hasBlob()) await blobWriteAll(all);
-    else await fileWriteAll(all);
+    await fileWriteAll(all);
   },
 };
