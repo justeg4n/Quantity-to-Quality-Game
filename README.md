@@ -6,7 +6,14 @@ boss 3 phase **"Vòng xoáy biện chứng"**.
 
 > Phaser 3 · TypeScript · Vite · deploy tĩnh trên Vercel. Không cần backend; tiến trình lưu bằng `localStorage`.
 >
-> Trước khi vào game người chơi nhập **tên**: mỗi tên một khe lưu riêng và một hồ sơ trên **Bảng xếp hạng** (số ván, trận thắng, điểm Gym/Học cao nhất, huy hiệu, lịch sử thử thách). Nhập tên `admin` sẽ hiện thêm ô mật khẩu (`Quality@123`) để vào **Trang quản trị**: xem bảng xếp hạng, tiến trình chi tiết (chỉ số, nhật ký ngày, lịch sử boss) và xoá dữ liệu từng người chơi. Kiểm tra mật khẩu nằm ở phía client — chỉ dùng cho mục đích trình diễn.
+> Trước khi vào game người chơi nhập **tên**: mỗi tên một khe lưu riêng (trên máy) và một hồ sơ trên **Bảng xếp hạng toàn cầu** (server): số ván, trận thắng, điểm Gym/Học cao nhất, huy hiệu, lịch sử thử thách và **nhân vật cuối cùng** của ván gần nhất (để so sánh & xếp hạng nhân vật). Nhập tên `admin` sẽ hiện thêm ô mật khẩu (`Quality@123`) để vào **Trang quản trị**: bảng xếp hạng, tiến trình chi tiết từng người chơi (chỉ số, nhật ký ngày, lịch sử boss, nhân vật cuối) và xoá dữ liệu.
+
+## Backend (bảng xếp hạng chung cho mọi máy)
+
+- API: `api/players.js` (Vercel Serverless Function) — `GET /api/players` (danh sách), `GET|PUT /api/players?name=X` (hồ sơ; PUT được **gộp** với bản trên server nên cùng một tên chơi trên nhiều máy vẫn cộng dồn), `DELETE /api/players?name=X` (header `x-admin-key`).
+- Cơ sở dữ liệu: **Upstash Redis** qua REST (không cần thư viện). Trên Vercel: *Project → Storage → Create → Upstash for Redis* (gói free) — Vercel tự thêm `KV_REST_API_URL` / `KV_REST_API_TOKEN` (hoặc tự đặt `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN`). Có thể đặt thêm `ADMIN_PASSWORD` để đổi mật khẩu xoá dữ liệu phía server.
+- Chưa gắn Redis: trên Vercel API vẫn chạy nhưng lưu tạm ở `/tmp` (mất khi function khởi động lại — game hiện cảnh báo ⚠). Khi `npm run dev`, Vite phục vụ cùng handler và lưu vào `.data/players.json`.
+- Client (`src/systems/Api.ts`) luôn giữ bản sao trong `localStorage`; mất mạng thì game vẫn chạy và bảng xếp hạng hiện dữ liệu máy này kèm cảnh báo. Không có xác thực người chơi (tên = danh tính) — phù hợp trình diễn, không phải bảo mật thật.
 
 ## Chạy local
 

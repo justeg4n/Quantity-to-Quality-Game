@@ -47,9 +47,11 @@ class GameStateImpl {
   playerName = Players.currentName() ?? 'Khách';
 
   // ─────────── Người chơi ───────────
-  setPlayer(name: string): void {
+  /** Chọn người chơi; kéo hồ sơ từ server về gộp với máy này (nếu backend sẵn sàng) */
+  async setPlayer(name: string): Promise<void> {
     this.playerName = Players.normalize(name) || 'Khách';
     Players.setCurrentName(this.playerName);
+    await Players.pullFromServer(this.playerName);
     Players.update(this.playerName, () => {});
   }
 
@@ -80,9 +82,18 @@ class GameStateImpl {
 
   /** Ghi kết quả một trận boss vào lịch sử người chơi */
   recordBossResult(won: boolean, reasons: string[]): void {
+    const stats = this.stats;
     Players.update(this.playerName, (r) => {
       if (won) r.wins += 1;
       else r.losses += 1;
+      // nhân vật cuối cùng của ván này — hiển thị & so sánh trên bảng xếp hạng
+      r.finalAvatar = {
+        at: Date.now(),
+        won,
+        stats: stats.clone(),
+        habits: this.habits(),
+        score: stats.totalPhysical() + stats.totalKnowledge(),
+      };
       r.history.push({
         at: Date.now(),
         won,

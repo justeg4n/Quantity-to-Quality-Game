@@ -1,4 +1,7 @@
+import { mergeRecords } from '../../api/_lib/merge.js';
 import type { Badges, DayRecord, PlayerStats } from '../data/types';
+import type { Habits } from '../gfx/Avatar';
+import { Api } from './Api';
 
 /** Tài khoản quản trị — chỉ dùng để xem bảng xếp hạng & tiến trình người chơi (kiểm tra phía client, không phải bảo mật thật) */
 export const ADMIN = { name: 'admin', password: 'Quality@123' } as const;
@@ -26,7 +29,17 @@ export interface PlayerCurrent {
   lastWon: boolean | null;
 }
 
-/** Hồ sơ một người chơi trong bảng xếp hạng (lưu localStorage, độc lập với save đang chơi) */
+/** Nhân vật cuối cùng khi kết thúc ván gần nhất — để hiển thị & so sánh trên bảng xếp hạng */
+export interface FinalAvatar {
+  at: number;
+  won: boolean;
+  stats: PlayerStats;
+  habits: Habits;
+  /** tổng thể chất + kiến thức của nhân vật */
+  score: number;
+}
+
+/** Hồ sơ một người chơi trong bảng xếp hạng (localStorage là bộ đệm; bản chính trên server /api/players) */
 export interface PlayerRecord {
   name: string;
   createdAt: number;
@@ -41,6 +54,7 @@ export interface PlayerRecord {
   badges: Badges;
   history: BossRecord[];
   current: PlayerCurrent | null;
+  finalAvatar?: FinalAvatar | null;
 }
 
 const KEY = 'q2q-players-v1';
@@ -81,6 +95,38 @@ function fresh(name: string): PlayerRecord {
   };
 }
 
+/** Xếp hạng: thắng nhiều → điểm nhân vật cuối → tổng điểm tốt nhất → chơi gần đây */
+export function rankPlayers(list: PlayerRecord[]): PlayerRecord[] {
+  const score = (r: PlayerRecord) => r.finalAvatar?.score ?? 0;
+  return [...list].sort(
+    (a, b) =>
+      b.wins - a.wins ||
+      score(b) - score(a) ||
+      b.bestTotalGym + b.bestTotalStudy - (a.bestTotalGym + a.bestTotalStudy) ||
+      b.lastPlayedAt - a.lastPlayedAt,
+  );
+}
+
+/** Đẩy hồ sơ lên server (gộp nhiều máy), gom các lần save liên tiếp lại */
+const pending = new Map<string, ReturnType<typeof setTimeout>>();
+function pushToServer(name: string): void {
+  clearTimeout(pending.get(name));
+  pending.set(
+    name,
+    setTimeout(async () => {
+      pending.delete(name);
+      const local = readAll()[name];
+      if (!local) return;
+      const merged = await Api.upsert(local);
+      if (merged) {
+        const all = readAll();
+        all[name] = mergeRecords(all[name], merged);
+        writeAll(all);
+      }
+    }, 800),
+  );
+}
+
 export const Players = {
   /** Chuẩn hoá tên: cắt khoảng trắng, tối đa 16 ký tự */
   normalize(name: string): string {
@@ -95,11 +141,27 @@ export const Players = {
     return Object.values(readAll());
   },
 
-  /** Xếp hạng: thắng nhiều → tổng điểm tốt nhất → chơi gần đây */
   ranked(): PlayerRecord[] {
-    return this.list().sort(
-      (a, b) => b.wins - a.wins || b.bestTotalGym + b.bestTotalStudy - (a.bestTotalGym + a.bestTotalStudy) || b.lastPlayedAt - a.lastPlayedAt,
-    );
+    return rankPlayers(this.list());
+  },
+
+  /** Lấy hồ sơ từ server và gộp vào bản local (khi người chơi nhập tên trên máy mới) */
+  async pullFromServer(name: string): Promise<void> {
+    const remote = await Api.get(name);
+    if (!remote) return;
+    const all = readAll();
+    all[name] = mergeRecords(all[name] ?? fresh(name), remote);
+    writeAll(all);
+  },
+
+  /** Bảng xếp hạng toàn cầu (server); null nếu backend không sẵn sàng */
+  async fetchRanked(): Promise<{ players: PlayerRecord[]; persistent: boolean } | null> {
+    const r = await Api.list();
+    if (!r) return null;
+    // hoà bản local vào để máy này luôn thấy chính mình kể cả khi vừa save chưa kịp đẩy
+    const byName = new Map(r.players.map((p) => [p.name, p]));
+    for (const l of this.list()) byName.set(l.name, mergeRecords(byName.get(l.name), l));
+    return { players: rankPlayers([...byName.values()]), persistent: r.persistent };
   },
 
   get(name: string): PlayerRecord | null {
@@ -113,13 +175,15 @@ export const Players = {
     r.lastPlayedAt = Date.now();
     all[name] = r;
     writeAll(all);
+    pushToServer(name);
     return r;
   },
 
-  remove(name: string): void {
+  async remove(name: string, adminKey: string): Promise<boolean> {
     const all = readAll();
     delete all[name];
     writeAll(all);
+    return Api.remove(name, adminKey);
   },
 
   currentName(): string | null {

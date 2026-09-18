@@ -90,12 +90,14 @@ export class TitleScene extends Phaser.Scene {
   /** Hỏi tên → admin vào trang quản trị; người chơi thường: tiếp tục ván dở hoặc chơi mới */
   private enter(): void {
     Sfx.unlock();
-    promptName(this, (r) => {
+    promptName(this, async (r) => {
       if (r.kind === 'admin') {
         this.scene.start(SCENE.admin);
         return;
       }
-      game.setPlayer(r.name);
+      const wait = txt(this, GAME_WIDTH / 2, GAME_HEIGHT / 2, 'Đang đồng bộ hồ sơ...', 24, C.cream, { stroke: '#0b0716', strokeThickness: 4 }).setOrigin(0.5).setDepth(150);
+      await game.setPlayer(r.name);
+      wait.destroy();
       const canContinue = game.canContinue();
       const hasSave = game.hasSave();
       const m = modal(this, 560, 220);
