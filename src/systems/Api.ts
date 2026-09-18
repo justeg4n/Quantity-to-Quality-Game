@@ -24,9 +24,9 @@ async function call<T>(method: string, query: string, body?: unknown, headers: R
 
 export interface ListResult {
   players: PlayerRecord[];
-  /** false = server đang chạy ở chế độ tạm (Vercel chưa gắn Redis) */
+  /** false = server đang chạy ở chế độ tạm (Vercel chưa gắn Blob/Redis) */
   persistent: boolean;
-  kind: 'redis' | 'file';
+  kind: 'blob' | 'redis' | 'file';
 }
 
 /** Client gọi backend /api/players. Mọi hàm trả null khi backend không sẵn sàng — game vẫn chạy với dữ liệu máy này. */

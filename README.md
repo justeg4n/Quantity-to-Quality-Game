@@ -11,8 +11,13 @@ boss 3 phase **"Vòng xoáy biện chứng"**.
 ## Backend (bảng xếp hạng chung cho mọi máy)
 
 - API: `api/players.js` (Vercel Serverless Function) — `GET /api/players` (danh sách), `GET|PUT /api/players?name=X` (hồ sơ; PUT được **gộp** với bản trên server nên cùng một tên chơi trên nhiều máy vẫn cộng dồn), `DELETE /api/players?name=X` (header `x-admin-key`).
-- Cơ sở dữ liệu: **Upstash Redis** qua REST (không cần thư viện). Trên Vercel: *Project → Storage → Create → Upstash for Redis* (gói free) — Vercel tự thêm `KV_REST_API_URL` / `KV_REST_API_TOKEN` (hoặc tự đặt `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN`). Có thể đặt thêm `ADMIN_PASSWORD` để đổi mật khẩu xoá dữ liệu phía server.
-- Chưa gắn Redis: trên Vercel API vẫn chạy nhưng lưu tạm ở `/tmp` (mất khi function khởi động lại — game hiện cảnh báo ⚠). Khi `npm run dev`, Vite phục vụ cùng handler và lưu vào `.data/players.json`.
+- Cơ sở dữ liệu — **miễn phí**, dùng **Vercel Blob** (kho lưu trữ riêng của Vercel, KHÔNG phải mục "Marketplace Database Providers" tính phí theo tháng):
+  1. Vào project trên Vercel → tab **Storage** → **Create Database** → chọn **Blob** (mục ở trên cùng, không nằm trong Marketplace) → đặt tên bất kỳ → Create.
+  2. Vercel tự thêm biến môi trường `BLOB_READ_WRITE_TOKEN` vào project và tự redeploy.
+  3. Xong — gói Hobby miễn phí có sẵn 1 GB lưu trữ, quá đủ cho vài nghìn hồ sơ người chơi (mỗi hồ sơ chỉ vài KB).
+  - Có thể đặt thêm `ADMIN_PASSWORD` (Environment Variables) để đổi mật khẩu xoá dữ liệu phía server, mặc định `Quality@123`.
+  - Muốn dùng Redis thay vì Blob: tự tạo tài khoản **miễn phí** trực tiếp tại upstash.com (không qua Vercel Marketplace — mục đó không còn gói free), rồi tự điền `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN` vào Environment Variables. `store.js` ưu tiên Blob nếu cả hai cùng có mặt.
+- Chưa gắn Blob/Redis: trên Vercel API vẫn chạy nhưng lưu tạm ở `/tmp` (mất khi function khởi động lại — game hiện cảnh báo ⚠). Khi `npm run dev`, Vite phục vụ cùng handler và lưu vào `.data/players.json`.
 - Client (`src/systems/Api.ts`) luôn giữ bản sao trong `localStorage`; mất mạng thì game vẫn chạy và bảng xếp hạng hiện dữ liệu máy này kèm cảnh báo. Không có xác thực người chơi (tên = danh tính) — phù hợp trình diễn, không phải bảo mật thật.
 
 ## Chạy local

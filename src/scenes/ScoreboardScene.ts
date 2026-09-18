@@ -44,7 +44,7 @@ export async function loadRanking(): Promise<{ players: PlayerRecord[]; source: 
 
 export const SOURCE_NOTE: Record<'server' | 'server-temp' | 'local', string> = {
   server: '☁ Dữ liệu từ máy chủ — mọi người chơi trên mọi máy.',
-  'server-temp': '⚠ Máy chủ chưa gắn cơ sở dữ liệu (chạy tạm) — dữ liệu có thể mất khi khởi động lại.',
+  'server-temp': '⚠ Máy chủ chưa gắn kho lưu trữ (chạy tạm ở /tmp) — dữ liệu có thể mất khi khởi động lại. Xem README để bật Vercel Blob (miễn phí).',
   local: '⚠ Không kết nối được máy chủ — chỉ hiển thị dữ liệu trên máy này.',
 };
 
