@@ -27,6 +27,8 @@ export type Pose =
 const SKIN = 0xf1c27d;
 const SKIN_D = 0xc68642;
 const HAIR = 0x2b1d0e;
+const HAIR_GRAY = 0xd8d8d8; // tóc bạc của học giả
+const GLASS = 0x333333;
 const TANK = 0x1d3557;
 const SHORTS = 0x222b45;
 const SHOE = 0x111111;
@@ -57,10 +59,17 @@ export function setAvatarHabits(h: Habits): void {
   currentHabits = { ...h };
 }
 
-/** Cỡ đầu (đơn vị pixel-art): 6 (rỗng) → 10 (uyên bác) theo TỔNG kiến thức, trừ 1 cỡ mỗi ngày bỏ học, tối thiểu 4. */
+/** Tổng điểm kiến thức */
+export function totalKnowledge(stats: PlayerStats): number {
+  return Object.values(stats.knowledge).reduce((s, v) => s + v, 0);
+}
+
+/** Ngưỡng "học giả": đeo kính từ 10 điểm kiến thức, tóc bạc từ 16 */
+export const SCHOLAR = { glasses: 10, grayHair: 16 };
+
+/** Cỡ đầu (đơn vị pixel-art): 6 (rỗng) → 12 (uyên bác, +1 mỗi 3 điểm kiến thức), trừ 1 cỡ mỗi ngày bỏ học, tối thiểu 5. */
 export function headSize(stats: PlayerStats, habits: Habits = currentHabits): number {
-  const total = Object.values(stats.knowledge).reduce((s, v) => s + v, 0);
-  return Math.max(5, 6 + Math.min(4, Math.floor(total / 4)) - habits.noStudyDays);
+  return Math.max(5, 6 + Math.min(6, Math.floor(totalKnowledge(stats) / 3)) - habits.noStudyDays);
 }
 
 /** Mặt đờ đẫn khi bỏ học >= 2 ngày */
@@ -108,7 +117,8 @@ const POSES: Record<Pose, PoseDef> = {
 export function avatarKey(stats: PlayerStats, pose: Pose, habits: Habits = currentHabits): string {
   const p = stats.physical;
   const l = [p.nguc, p.vai, p.lung, p.tay, p.bung, p.chan].map((v) => muscleLevel(v, habits)).join('');
-  return `av-${pose}-${l}-h${headSize(stats, habits)}${isDerp(habits) ? 'd' : ''}${habits.noGymDays >= 2 ? 'b' : ''}`;
+  const k = totalKnowledge(stats);
+  return `av-${pose}-${l}-h${headSize(stats, habits)}${isDerp(habits) ? 'd' : ''}${habits.noGymDays >= 2 ? 'b' : ''}${k >= SCHOLAR.glasses ? 'g' : ''}${k >= SCHOLAR.grayHair ? 's' : ''}`;
 }
 
 /** Đảm bảo texture avatar tồn tại; trả về key. u = kích thước 1 pixel-art (px). `habits` mặc định = thói quen của người chơi. */
@@ -144,6 +154,9 @@ export function drawAvatar(g: Phaser.GameObjects.Graphics, stats: PlayerStats, p
   };
   const derp = isDerp(habits);
   const belly = habits.noGymDays >= 2;
+  const know = totalKnowledge(stats);
+  const glasses = know >= SCHOLAR.glasses && !derp;
+  const hairColor = know >= SCHOLAR.grayHair ? HAIR_GRAY : HAIR;
   const def = POSES[pose];
   const cx = AV_W / 2;
   const squat = def.squat ?? 0;
@@ -151,7 +164,7 @@ export function drawAvatar(g: Phaser.GameObjects.Graphics, stats: PlayerStats, p
 
   const hs = headSize(stats, habits);
   if (def.lying) {
-    drawLying(g, L, def, u, hs);
+    drawLying(g, L, def, u, hs, hairColor);
     return;
   }
 
@@ -247,9 +260,9 @@ export function drawAvatar(g: Phaser.GameObjects.Graphics, stats: PlayerStats, p
   const hy = neckY - hs;
   px(g, SKIN, hx, hy, hs, hs, u);
   const hairH = hs >= 7 ? 3 : 2; // đầu nhỏ thì tóc mỏng để còn chỗ cho mặt
-  px(g, HAIR, hx, hy - 1, hs, hairH, u);
-  px(g, HAIR, hx - 1, hy, 1, hairH, u);
-  px(g, HAIR, hx + hs, hy, 1, hairH, u);
+  px(g, hairColor, hx, hy - 1, hs, hairH, u);
+  px(g, hairColor, hx - 1, hy, 1, hairH, u);
+  px(g, hairColor, hx + hs, hy, 1, hairH, u);
   // mắt
   const tiredEyes = pose === 'tired';
   const eyeY = hs >= 7 ? hy + Math.floor(hs / 2) : hy + hairH - 1;
@@ -263,6 +276,16 @@ export function drawAvatar(g: Phaser.GameObjects.Graphics, stats: PlayerStats, p
   } else {
     px(g, EYE, hx + 1, eyeY, 1, tiredEyes ? 1 : 2, u);
     px(g, EYE, hx + hs - 2, eyeY, 1, tiredEyes ? 1 : 2, u);
+    if (glasses && hs >= 7) {
+      // kính: gọng vuông quanh mỗi mắt + cầu kính ở giữa
+      for (const gx of [hx, hx + hs - 3]) {
+        px(g, GLASS, gx, eyeY - 1, 3, 1, u);
+        px(g, GLASS, gx, eyeY + 2, 3, 1, u);
+        px(g, GLASS, gx, eyeY, 1, 2, u);
+        px(g, GLASS, gx + 2, eyeY, 1, 2, u);
+      }
+      px(g, GLASS, hx + 3, eyeY, hs - 6, 1, u);
+    }
   }
   // miệng
   const mouthY = Math.max(eyeY + 2, hy + hs - 2);
@@ -282,7 +305,7 @@ export function drawAvatar(g: Phaser.GameObjects.Graphics, stats: PlayerStats, p
 }
 
 /** Tư thế push-up: thân nằm ngang (side view đơn giản) */
-function drawLying(g: Phaser.GameObjects.Graphics, L: Record<string, number>, def: PoseDef, u: number, hs: number): void {
+function drawLying(g: Phaser.GameObjects.Graphics, L: Record<string, number>, def: PoseDef, u: number, hs: number, hairColor: number): void {
   const squat = def.squat ?? 0; // 0 = tay duỗi (cao), 3 = hạ thấp
   const groundY = AV_H - 2;
   const bodyT = 5 + Math.min(L.nguc, 2); // độ dày thân
@@ -298,7 +321,7 @@ function drawLying(g: Phaser.GameObjects.Graphics, L: Record<string, number>, de
   // đầu (bên phải), cỡ theo kiến thức
   const hh = hs - 1;
   px(g, SKIN, x1, bodyY + 4 - hh, hh, hh, u);
-  px(g, HAIR, x1, bodyY + 3 - hh, hh, 2, u);
+  px(g, hairColor, x1, bodyY + 3 - hh, hh, 2, u);
   px(g, EYE, x1 + hh - 2, bodyY + 1 - Math.floor(hh / 3), 1, 2, u);
   // tay chống xuống đất
   const armT = 2 + L.tay;
