@@ -42,4 +42,6 @@ export const SCENE = {
   boss: 'BossScene',
   ending: 'EndingScene',
   pause: 'PauseScene',
+  scoreboard: 'ScoreboardScene',
+  admin: 'AdminScene',
 } as const;

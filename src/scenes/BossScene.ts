@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { C, GAME_HEIGHT, GAME_WIDTH, SCENE } from '../config/constants';
 import { BALANCE, KNOWLEDGE_KEYS, KNOWLEDGE_LABEL, KNOWLEDGE_SHORT, PHYSICAL_KEYS, PHYSICAL_LABEL } from '../data/balance';
 import { BOSS_LINES } from '../data/dialogue';
+import { EXERCISES } from '../data/exercises';
 import type { KnowledgeKey, PhysicalKey, PlayerStats, QuizQuestion } from '../data/types';
 import { ensureAvatar, type Pose } from '../gfx/Avatar';
 import { SkyLayer } from '../gfx/Sky';
@@ -18,7 +19,12 @@ import { ActionButton, Button, floatText, modal, txt } from '../ui/Widgets';
 /** Ba loại phase: 2 phase tiêu hao (thứ tự ngẫu nhiên) rồi phase cuối dùng phần còn lại */
 type PhaseKind = 'quantity' | 'struggle' | 'negation';
 type Phase = 'intro' | PhaseKind | 'result';
-type BossExercise = (typeof BALANCE.bossExercises)[number];
+/** Một bài tập trong trận: 3 bài tổng hợp (phase cuối) hoặc 6 bài gym đơn nhóm cơ (2 phase đầu) */
+interface BossExercise {
+  id: string;
+  name: string;
+  muscles: PhysicalKey[];
+}
 
 // ─── Tham số các phase (chi phí tiêu hao tối thiểu được tính trong data/balance.ts) ───
 // Phase "Lượng đổi": mở màn bằng 1 lượt tập, sau đó cứ 2 câu hỏi lại 1 lượt; cần 2 câu đúng.
@@ -47,11 +53,16 @@ const AVATAR_Y = ARENA_H - 6;
 const BOSS_X = 620;
 const BOSS_Y = 128;
 
-const POSES: Record<string, [Pose, Pose]> = {
+const COMPOUND_POSES: Record<string, [Pose, Pose]> = {
   pushup: ['pushup_a', 'pushup_b'],
   latpulldown: ['lung_a', 'lung_b'],
   squat: ['chan_a', 'chan_b'],
 };
+
+/** Tư thế 2 nhịp của bài tập: bài tổng hợp có bảng riêng, bài gym dùng `${nhómCơ}_a/_b` */
+function posesFor(id: string): [Pose, Pose] {
+  return COMPOUND_POSES[id] ?? [`${id}_a` as Pose, `${id}_b` as Pose];
+}
 
 function shuffle<T>(arr: readonly T[]): T[] {
   const a = [...arr];
@@ -81,7 +92,10 @@ export class BossScene extends Phaser.Scene {
   /** Thứ tự phase & bài tập của lần chơi này (ngẫu nhiên mỗi trận) */
   private order: PhaseKind[] = [];
   private phaseIndex = 0;
+  /** 3 bài tổng hợp cho phase cuối (xáo thứ tự) */
   private exercises: BossExercise[] = [];
+  /** 6 bài gym (Ngực/Vai/Lưng/Tay/Bụng/Chân) xáo thứ tự cho 2 phase đầu: [0] mở màn "Lượng đổi", [1..2] hai cặp "Đấu tranh" */
+  private gymPool: BossExercise[] = [];
 
   /** Chỉ số lúc bước vào trận — khôi phục sau khi kết thúc (để thử lại cả trận) */
   private snapshot!: PlayerStats;
@@ -144,9 +158,10 @@ export class BossScene extends Phaser.Scene {
     // Ngẫu nhiên hoá: thứ tự 2 phase tiêu hao, và bài tập cho từng phase (phase cuối dùng cả 3, thứ tự ngẫu nhiên)
     this.order = [...shuffle(['quantity', 'struggle'] as PhaseKind[]), 'negation'];
     this.phaseIndex = 0;
-    this.exercises = shuffle(BALANCE.bossExercises);
-    this.qzEx = this.exercises[0];
-    this.spRounds = this.exercises.slice(1, 1 + SP.rounds);
+    this.exercises = shuffle(BALANCE.bossExercises).map((e) => ({ id: e.id, name: e.name, muscles: [...e.muscles] }));
+    this.gymPool = shuffle(PHYSICAL_KEYS).map((k) => ({ id: k, name: EXERCISES[k].name, muscles: [k] }));
+    this.qzEx = this.gymPool[0];
+    this.spRounds = this.gymPool.slice(1, 1 + SP.rounds);
 
     // ─── Đấu trường (nửa trên) ───
     this.sky = new SkyLayer(this, ARENA_H);
@@ -330,7 +345,7 @@ export class BossScene extends Phaser.Scene {
 
   /** Hoạt ảnh một lượt tập (2 tư thế) rồi về nghỉ */
   private animateExercise(ex: BossExercise, done?: () => void): void {
-    const [a, b] = POSES[ex.id];
+    const [a, b] = posesFor(ex.id);
     this.setAvatar(a);
     this.time.delayedCall(220, () => this.setAvatar(b));
     this.time.delayedCall(440, () => this.setAvatar(a));
@@ -377,7 +392,7 @@ export class BossScene extends Phaser.Scene {
     m.root.add(txt(this, 40, -45, BOSS_LINES.intro[0], 19, C.cream, { wordWrap: { width: 500 }, align: 'center' }).setOrigin(0.5));
     const seq = this.order.map((k, i) => `${i + 1}. ${k === 'quantity' ? BOSS_LINES.quantity : k === 'struggle' ? BOSS_LINES.struggle : BOSS_LINES.negation}`).join('   →   ');
     m.root.add(txt(this, 40, 15, seq, 14, C.gold, { wordWrap: { width: 520 }, align: 'center' }).setOrigin(0.5));
-    m.root.add(txt(this, 40, 48, `Lần thử: ${game.bossAttempts}   ·   Thứ tự phase & bài tập ngẫu nhiên mỗi trận   ·   2 phase đầu tiêu hao chỉ số, phase cuối chỉ còn phần còn lại.`, 14, C.gray, { wordWrap: { width: 520 }, align: 'center' }).setOrigin(0.5));
+    m.root.add(txt(this, 40, 48, `Lần thử: ${game.bossAttempts}   ·   2 phase đầu rút ngẫu nhiên từ 6 bài gym (Ngực/Vai/Lưng/Tay/Bụng/Chân) và tiêu hao chỉ số; phase cuối 3 bài tổng hợp trên phần còn lại.`, 14, C.gray, { wordWrap: { width: 520 }, align: 'center' }).setOrigin(0.5));
     m.root.add(new Button(this, 40, 105, 'NGHÊNH CHIẾN', () => { m.close(); this.startPhase(this.order[0]); }, { w: 240, h: 46, fill: C.redHex }));
   }
 
@@ -392,7 +407,7 @@ export class BossScene extends Phaser.Scene {
     game.stats.stats = JSON.parse(JSON.stringify(this.phaseSnapshot));
     this.refreshStrip();
     this.refreshFatigue();
-    this.qzEx = this.exercises[0];
+    this.qzEx = this.gymPool[0];
     const ex = this.qzEx;
     const names = ex.muscles.map((m) => PHYSICAL_LABEL[m]).join(', ');
     this.banner(
@@ -450,7 +465,7 @@ export class BossScene extends Phaser.Scene {
 
   private qzStartBurst(): void {
     // mỗi lần bùng nổ dùng một bài tập khác (xoay vòng), lần đầu luôn là exercises[0]
-    this.qzEx = this.exercises[this.qz.bursts % this.exercises.length];
+    this.qzEx = this.gymPool[this.qz.bursts % this.gymPool.length];
     this.qz.bursts++;
     this.qz.burst = true;
     this.qz.burstPresses = 0;
@@ -462,7 +477,7 @@ export class BossScene extends Phaser.Scene {
       align: 'center',
     }).setOrigin(0.5).setDepth(70);
     this.actionBtn?.setVisible(true);
-    this.setAvatar(POSES[this.qzEx.id][0]);
+    this.setAvatar(posesFor(this.qzEx.id)[0]);
     this.boss.setTint(0xff6666);
   }
 
@@ -470,7 +485,7 @@ export class BossScene extends Phaser.Scene {
     if (this.phase !== 'quantity' || !this.qz.burst) return;
     this.qz.burstPresses++;
     this.pushToggle = !this.pushToggle;
-    this.setAvatar(POSES[this.qzEx.id][this.pushToggle ? 1 : 0]);
+    this.setAvatar(posesFor(this.qzEx.id)[this.pushToggle ? 1 : 0]);
     Sfx.rep();
     this.actionBtn?.flash();
     this.sweat.explode(1, AVATAR_X, AVATAR_Y - 140);
@@ -568,7 +583,7 @@ export class BossScene extends Phaser.Scene {
             this.sp.reps++;
             grade === 'perfect' ? Sfx.perfect() : Sfx.good();
             floatText(this, 250, PANEL_Y + 100, grade === 'perfect' ? 'PERFECT!' : 'GOOD', grade === 'perfect' ? C.green : C.gold, 24);
-            this.animateExercise(ex, () => { if (this.phase === 'struggle') this.setAvatar(POSES[this.spRounds[this.sp.round].id][0]); });
+            this.animateExercise(ex, () => { if (this.phase === 'struggle') this.setAvatar(posesFor(this.spRounds[this.sp.round].id)[0]); });
             this.sweat.explode(3, AVATAR_X, AVATAR_Y - 140);
             this.bossHit();
           }
@@ -589,7 +604,7 @@ export class BossScene extends Phaser.Scene {
     this.sp.reps = 0;
     this.sp.qDone = false;
     this.spTitleLeft.setText(`CẶP ${this.sp.round + 1}/${SP.rounds} — ${ex.name.toUpperCase()}`);
-    this.setAvatar(POSES[ex.id][0]);
+    this.setAvatar(posesFor(ex.id)[0]);
     this.drainPhysical(ex.muscles, false, AVATAR_X + 120, ARENA_H - 50);
     this.spAsk();
     this.spRefresh();
@@ -866,6 +881,7 @@ export class BossScene extends Phaser.Scene {
     game.lastBossResult = { won, reasons };
     game.phase = 'ended';
     if (won) game.badges.champion = true;
+    game.recordBossResult(won, reasons);
     game.save();
 
     Sfx.stopBgm();

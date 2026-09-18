@@ -1,18 +1,23 @@
 import type { SaveData } from '../data/types';
 
-const KEY = 'q2q-save-v1';
+const PREFIX = 'q2q-save-v1';
+
+/** Mỗi người chơi một khe lưu riêng theo tên */
+function keyFor(player: string): string {
+  return `${PREFIX}:${player}`;
+}
 
 export const SaveSystem = {
-  save(data: SaveData): void {
+  save(player: string, data: SaveData): void {
     try {
-      localStorage.setItem(KEY, JSON.stringify(data));
+      localStorage.setItem(keyFor(player), JSON.stringify(data));
     } catch {
       /* private mode / quota — bỏ qua, game vẫn chạy trong phiên */
     }
   },
-  load(): SaveData | null {
+  load(player: string): SaveData | null {
     try {
-      const raw = localStorage.getItem(KEY);
+      const raw = localStorage.getItem(keyFor(player));
       if (!raw) return null;
       const data = JSON.parse(raw) as SaveData;
       if (!data || data.version !== 1) return null;
@@ -21,14 +26,14 @@ export const SaveSystem = {
       return null;
     }
   },
-  clear(): void {
+  clear(player: string): void {
     try {
-      localStorage.removeItem(KEY);
+      localStorage.removeItem(keyFor(player));
     } catch {
       /* ignore */
     }
   },
-  exists(): boolean {
-    return this.load() !== null;
+  exists(player: string): boolean {
+    return this.load(player) !== null;
   },
 };

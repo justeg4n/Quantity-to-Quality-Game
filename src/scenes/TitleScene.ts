@@ -7,9 +7,9 @@ const NO_HABITS: Habits = { noStudyDays: 0, noGymDays: 0 };
 import { drawBackdrop } from '../gfx/Backdrop';
 import { SkyLayer } from '../gfx/Sky';
 import { game } from '../systems/GameState';
-import { SaveSystem } from '../systems/SaveSystem';
 import { Sfx } from '../systems/Sfx';
 import { StatsManager } from '../systems/StatsManager';
+import { promptName } from '../ui/NameInput';
 import { Button, modal, txt } from '../ui/Widgets';
 
 export class TitleScene extends Phaser.Scene {
@@ -55,16 +55,11 @@ export class TitleScene extends Phaser.Scene {
     }).setOrigin(0.5);
     this.tweens.add({ targets: title, y: 66, duration: 1400, yoyo: true, repeat: -1, ease: 'Sine.InOut' });
 
-    // Nút
-    // Chỉ cho "Tiếp tục" khi ván chưa kết thúc; đã kết thúc thì chỉ còn "Chơi mới"
-    const hasSave = game.hasSave();
-    const canContinue = hasSave && SaveSystem.load()?.phase !== 'ended';
+    // Nút: nhập tên trước khi vào game (admin → trang quản trị), bảng xếp hạng, hướng dẫn
     let y = 215;
-    if (canContinue) {
-      new Button(this, GAME_WIDTH / 2, y, 'TIẾP TỤC', () => this.continueGame(), { w: 300, h: 50, fill: C.blueHex });
-      y += 62;
-    }
-    new Button(this, GAME_WIDTH / 2, y, hasSave ? 'CHƠI MỚI' : `BẮT ĐẦU ${BALANCE.totalDays} NGÀY`, () => this.newGame(hasSave), { w: 300, h: 50 });
+    new Button(this, GAME_WIDTH / 2, y, 'VÀO GAME', () => this.enter(), { w: 300, h: 50, fill: C.greenHex, color: C.dark });
+    y += 62;
+    new Button(this, GAME_WIDTH / 2, y, 'BẢNG XẾP HẠNG', () => this.scene.start(SCENE.scoreboard), { w: 300, h: 50, fill: C.blueHex });
     y += 62;
     new Button(this, GAME_WIDTH / 2, y, 'HƯỚNG DẪN', () => this.showHelp(), { w: 300, h: 50 });
 
@@ -92,18 +87,30 @@ export class TitleScene extends Phaser.Scene {
     this.sky.set(this.t);
   }
 
-  private newGame(confirmOverwrite: boolean): void {
-    if (confirmOverwrite) {
-      const m = modal(this, 480, 170);
-      m.root.add(txt(this, 0, -40, 'Bắt đầu mới sẽ XOÁ tiến trình đã lưu. Tiếp tục?', 22, C.cream).setOrigin(0.5));
+  /** Hỏi tên → admin vào trang quản trị; người chơi thường: tiếp tục ván dở hoặc chơi mới */
+  private enter(): void {
+    Sfx.unlock();
+    promptName(this, (r) => {
+      if (r.kind === 'admin') {
+        this.scene.start(SCENE.admin);
+        return;
+      }
+      game.setPlayer(r.name);
+      const canContinue = game.canContinue();
+      const hasSave = game.hasSave();
+      const m = modal(this, 560, 220);
+      m.root.add(txt(this, 0, -75, `Xin chào, ${game.playerName}!`, 30, C.gold).setOrigin(0.5));
       m.root.add(
-        new Button(this, -115, 30, 'XOÁ & CHƠI MỚI', () => { m.close(); game.newGame(false); this.start(); }, { w: 210, h: 46, fill: C.redHex, size: 20 }),
+        txt(this, 0, -35, canContinue ? 'Bạn đang có ván chơi dở. Tiếp tục hay bắt đầu lại?' : hasSave ? 'Ván trước đã kết thúc. Bắt đầu ván mới?' : `Sẵn sàng cho ${BALANCE.totalDays} ngày rèn luyện?`, 19, C.cream, { wordWrap: { width: 500 }, align: 'center' }).setOrigin(0.5),
       );
-      m.root.add(new Button(this, 115, 30, 'HUỶ', () => m.close(), { w: 210, h: 46, size: 20 }));
-      return;
-    }
-    game.newGame(false);
-    this.start();
+      if (canContinue) {
+        m.root.add(new Button(this, -120, 45, 'TIẾP TỤC', () => { m.close(); this.continueGame(); }, { w: 220, h: 46, fill: C.blueHex, size: 20 }));
+        m.root.add(new Button(this, 120, 45, 'CHƠI MỚI (XOÁ)', () => { m.close(); game.newGame(false); this.start(); }, { w: 220, h: 46, fill: C.redHex, size: 20 }));
+      } else {
+        m.root.add(new Button(this, 0, 45, `BẮT ĐẦU ${BALANCE.totalDays} NGÀY`, () => { m.close(); game.newGame(false); this.start(); }, { w: 260, h: 46, fill: C.greenHex, color: C.dark, size: 20 }));
+      }
+      m.root.add(new Button(this, 0, 95, 'ĐỔI TÊN', () => { m.close(); this.enter(); }, { w: 160, h: 34, size: 17 }));
+    });
   }
 
   private continueGame(): void {

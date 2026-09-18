@@ -2,6 +2,7 @@ import { BALANCE, KNOWLEDGE_KEYS } from '../data/balance';
 import { dayDiary } from '../data/dialogue';
 import type { Badges, DayState, KnowledgeKey, SaveData, Weather } from '../data/types';
 import { setAvatarHabits } from '../gfx/Avatar';
+import { Players } from './Players';
 import { SaveSystem } from './SaveSystem';
 import { StatsManager } from './StatsManager';
 
@@ -42,9 +43,62 @@ class GameStateImpl {
   /** Kết quả trận boss gần nhất — dùng cho EndingScene */
   lastBossResult: { won: boolean; reasons: string[] } | null = null;
   muted = false;
+  /** Tên người chơi hiện tại — mỗi tên một khe lưu và một hồ sơ trên bảng xếp hạng */
+  playerName = Players.currentName() ?? 'Khách';
+
+  // ─────────── Người chơi ───────────
+  setPlayer(name: string): void {
+    this.playerName = Players.normalize(name) || 'Khách';
+    Players.setCurrentName(this.playerName);
+    Players.update(this.playerName, () => {});
+  }
+
+  /** Cập nhật hồ sơ người chơi từ trạng thái hiện tại (gọi mỗi lần save) */
+  private syncPlayerRecord(): void {
+    const stats = this.stats;
+    const badges = this.badges;
+    Players.update(this.playerName, (r) => {
+      r.bestTotalGym = Math.max(r.bestTotalGym, this.totalGym);
+      r.bestTotalStudy = Math.max(r.bestTotalStudy, this.totalStudy);
+      r.maxKnowledge = Math.max(r.maxKnowledge, stats.totalKnowledge());
+      r.maxPhysical = Math.max(r.maxPhysical, stats.totalPhysical());
+      (Object.keys(badges) as Array<keyof Badges>).forEach((k) => { if (badges[k]) r.badges[k] = true; });
+      r.current = {
+        phase: this.phase,
+        day: this.day.currentDay,
+        pointsLeft: this.day.pointsLeft,
+        totalGym: this.totalGym,
+        totalStudy: this.totalStudy,
+        stats: stats.clone(),
+        log: [...this.day.log],
+        newGamePlus: this.newGamePlus,
+        bossAttempts: this.bossAttempts,
+        lastWon: this.lastBossResult?.won ?? null,
+      };
+    });
+  }
+
+  /** Ghi kết quả một trận boss vào lịch sử người chơi */
+  recordBossResult(won: boolean, reasons: string[]): void {
+    Players.update(this.playerName, (r) => {
+      if (won) r.wins += 1;
+      else r.losses += 1;
+      r.history.push({
+        at: Date.now(),
+        won,
+        reasons,
+        attempts: this.bossAttempts,
+        totalGym: this.totalGym,
+        totalStudy: this.totalStudy,
+        newGamePlus: this.newGamePlus,
+      });
+      if (r.history.length > 50) r.history.splice(0, r.history.length - 50);
+    });
+  }
 
   // ─────────── Vòng đời ───────────
   newGame(keepBadges = false): void {
+    Players.update(this.playerName, (r) => { r.games += 1; });
     const badges = keepBadges ? { ...this.badges, champion: false } : { balanced: false, scholar: false, athlete: false, champion: false };
     const ngp = keepBadges ? this.newGamePlus + 1 : 0;
     this.stats = new StatsManager();
@@ -77,7 +131,7 @@ class GameStateImpl {
   }
 
   load(): boolean {
-    const d = SaveSystem.load();
+    const d = SaveSystem.load(this.playerName);
     if (!d) return false;
     this.stats = new StatsManager(d.stats);
     this.day = d.day;
@@ -111,11 +165,18 @@ class GameStateImpl {
       newGamePlus: this.newGamePlus,
       bossAttempts: this.bossAttempts,
     };
-    SaveSystem.save(data);
+    SaveSystem.save(this.playerName, data);
+    this.syncPlayerRecord();
   }
 
   hasSave(): boolean {
-    return SaveSystem.exists();
+    return SaveSystem.exists(this.playerName);
+  }
+
+  /** Save của người chơi hiện tại còn dở dang (chưa kết thúc) → được phép "Tiếp tục" */
+  canContinue(): boolean {
+    const d = SaveSystem.load(this.playerName);
+    return !!d && d.phase !== 'ended';
   }
 
   // ─────────── DayManager ───────────

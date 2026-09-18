@@ -90,7 +90,7 @@ export class TownScene extends Phaser.Scene {
     this.add.image(120, 52, 'icon-laurel').setDepth(80).setVisible(game.day.philosopherBadge);
     if (game.day.philosopherBadge) txt(this, 136, 42, 'Triết gia', 18, C.green, { stroke: '#0b0716', strokeThickness: 3 }).setDepth(80);
     new Button(this, GAME_WIDTH - 90, 30, 'CHỈ SỐ', () => this.showStats(), { w: 150, h: 40, size: 20 });
-    if (game.newGamePlus > 0) txt(this, GAME_WIDTH - 170, 16, `NG+${game.newGamePlus}`, 20, C.gold, { stroke: '#0b0716', strokeThickness: 3 }).setOrigin(1, 0).setDepth(80);
+    txt(this, GAME_WIDTH - 170, 16, `${game.playerName}${game.newGamePlus > 0 ? `  ·  NG+${game.newGamePlus}` : ''}`, 20, C.gold, { stroke: '#0b0716', strokeThickness: 3 }).setOrigin(1, 0).setDepth(80);
     this.prompt = txt(this, GAME_WIDTH / 2, 74, '', 22, C.gold, { stroke: '#0b0716', strokeThickness: 4 }).setOrigin(0.5).setDepth(80);
 
     this.setupWeather();

@@ -8,14 +8,14 @@ import type { KnowledgeKey, PhysicalKey } from './types';
  *   Ngực>=2, Vai>=2, Lưng>=2, Chân>=2, Bụng>=2, Tay>=4  (14 điểm Gym)
  *   Mỗi khối kiến thức >= 2                             (12 điểm Học)
  * Hai phase đầu (thứ tự & bài tập ngẫu nhiên) tiêu hao thêm trước khi vào phase cuối (chơi hoàn hảo):
- *   "Lượng đổi":  1 lượt bài tập X (−1 các nhóm cơ của X) + 2 câu hỏi (−1 khối mỗi câu)
- *   "Đấu tranh":  2 cặp, mỗi cặp 1 lượt bài tập Y/Z gồm 3 rep (−1 các nhóm cơ, tính 1 lần cho cả lượt) + 1 câu hỏi
- *   X, Y, Z là 3 bài Push-up / Lat Pull Down / Squat (xáo thứ tự) → cả trận dùng mỗi bài đúng 1 lần. Mỗi nhóm cơ:
- *   Ngực 3, Vai 3, Lưng 3, Chân 3, Bụng 3, Tay 6 (Tay dùng ở 2 bài) => 21 Gym.
+ *   "Lượng đổi":  1 lượt bài gym X (−1 nhóm cơ của X) + 2 câu hỏi (−1 khối mỗi câu)
+ *   "Đấu tranh":  2 cặp, mỗi cặp 1 lượt bài gym Y/Z gồm 3 rep (−1 nhóm cơ, tính 1 lần cho cả lượt) + 1 câu hỏi
+ *   X, Y, Z là 3 trong 6 bài gym đơn nhóm cơ (Ngực/Vai/Lưng/Tay/Bụng/Chân) xáo thứ tự → xấu nhất mỗi nhóm cơ −1:
+ *   Ngực 3, Vai 3, Lưng 3, Chân 3, Bụng 3, Tay 5 => 20 Gym.
  *   Câu hỏi theo concept phase: "Lượng đổi" hỏi Chất/Lượng/QH L–C (2 câu, ưu tiên khối cao nhất => nhóm này tổng >= 8),
  *   "Đấu tranh" hỏi Độ/Điểm nút (2 câu => nhóm này tổng >= 6), Vận dụng >= 2 => Học 16.
  *   Thất bại/sai trừ thêm 1 ở MỌI nhóm còn lại.
- * Tổng tối thiểu để chắc chắn thắng: 21 Gym + 16 Học = 37 / 40 điểm, còn 3 điểm dự phòng.
+ * Tổng tối thiểu để chắc chắn thắng: 20 Gym + 16 Học = 36 / 40 điểm, còn 4 điểm dự phòng.
  */
 export const BALANCE = {
   totalDays: 4,

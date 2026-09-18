@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { C, GAME_HEIGHT, GAME_WIDTH } from './config/constants';
+import { AdminScene } from './scenes/AdminScene';
 import { AthensScene } from './scenes/AthensScene';
 import { BootScene } from './scenes/BootScene';
 import { BossScene } from './scenes/BossScene';
@@ -9,6 +10,7 @@ import { ExerciseScene } from './scenes/ExerciseScene';
 import { GymScene } from './scenes/GymScene';
 import { PauseScene } from './scenes/PauseScene';
 import { QuizScene } from './scenes/QuizScene';
+import { ScoreboardScene } from './scenes/ScoreboardScene';
 import { TitleScene } from './scenes/TitleScene';
 import { TownScene } from './scenes/TownScene';
 
@@ -26,7 +28,8 @@ const config: Phaser.Types.Core.GameConfig = {
     autoCenter: Phaser.Scale.CENTER_BOTH,
   },
   input: { activePointers: 2 },
-  scene: [BootScene, TitleScene, TownScene, GymScene, ExerciseScene, AthensScene, QuizScene, DayEndScene, BossScene, EndingScene, PauseScene],
+  dom: { createContainer: true },
+  scene: [BootScene, TitleScene, TownScene, GymScene, ExerciseScene, AthensScene, QuizScene, DayEndScene, BossScene, EndingScene, PauseScene, ScoreboardScene, AdminScene],
 };
 
 const phaserGame = new Phaser.Game(config);
