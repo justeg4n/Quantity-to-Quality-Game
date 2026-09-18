@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { C, GAME_HEIGHT, GAME_WIDTH, SCENE } from '../config/constants';
 import { BALANCE, PHYSICAL_KEYS, PHYSICAL_LABEL } from '../data/balance';
 import { TRAINER_LINES } from '../data/dialogue';
-import { EXERCISES } from '../data/exercises';
+import { EXERCISES, MODE_INFO } from '../data/exercises';
 import type { PhysicalKey } from '../data/types';
 import { ensureAvatar } from '../gfx/Avatar';
 import { game } from '../systems/GameState';
@@ -88,9 +88,9 @@ export class GymScene extends Phaser.Scene {
     if (data?.trained) {
       const k = data.trained;
       this.time.delayedCall(200, () => {
-        floatText(this, px0 + 140, 300, `+1 ${PHYSICAL_LABEL[k]}!`, C.green, 30);
+        floatText(this, px0 + 140, 300, `+${data.bonus ? 2 : 1} ${PHYSICAL_LABEL[k]}!`, data.bonus ? C.gold : C.green, 30);
         Sfx.statUp();
-        if (data.bonus) this.time.delayedCall(600, () => floatText(this, px0 + 140, 330, `COMBO BONUS +1 ${PHYSICAL_LABEL[k]}!`, C.gold, 26));
+        if (data.bonus) this.time.delayedCall(600, () => floatText(this, px0 + 140, 330, `COMBO BONUS: +1 gốc +1 phụ trội!`, C.gold, 24));
       });
     }
     if (game.pointsLeft === 0) {
@@ -101,6 +101,7 @@ export class GymScene extends Phaser.Scene {
   }
 
   private trainerLine(data: GymReturn): string {
+    if (data?.bonus && data.trained) return `COMBO ×${BALANCE.combosPerBonus}! ${PHYSICAL_LABEL[data.trained]} +2 lượt này. Form chuẩn như sách giáo khoa!`;
     if (data?.combo) return 'COMBO! Form chuẩn như sách giáo khoa. Cứ thế mà phát huy!';
     if (data?.trained) return `Xong bài ${EXERCISES[data.trained].name}. ${PHYSICAL_LABEL[data.trained]} +1. Tiếp không?`;
     const idx = (game.gymVisits - 1) % TRAINER_LINES.length;
@@ -116,7 +117,7 @@ export class GymScene extends Phaser.Scene {
     c.add(img);
     c.add(txt(this, 0, 6, `${PHYSICAL_LABEL[k].toUpperCase()}`, 22, C.gold).setOrigin(0.5, 0));
     c.add(txt(this, 0, 28, ex.name, 15, C.cream).setOrigin(0.5, 0));
-    c.add(txt(this, 0, 44, ex.mode === 'mash' ? '[bấm liên tục]' : '[canh thời điểm]', 13, C.gray).setOrigin(0.5, 0));
+    c.add(txt(this, 0, 44, MODE_INFO[ex.mode].short, 13, C.gray).setOrigin(0.5, 0));
     const v = game.stats.physical(k);
     c.add(txt(this, 46, -92, `${v}`, 20, C.gold, { stroke: '#0b0716', strokeThickness: 3 }).setOrigin(0.5));
     c.setSize(120, 130);
@@ -143,9 +144,7 @@ export class GymScene extends Phaser.Scene {
         this,
         -170,
         -80,
-        ex.mode === 'mash'
-          ? `Cơ chế MASH: bấm SPACE liên tục, đủ ${ex.mashPerRep} lần trong ${(ex.repWindowMs! / 1000).toFixed(1)}s = 1 rep. Bấm nhanh → PERFECT. Cần đủ ${ex.repsRequired} rep.`
-          : `Cơ chế TIMING: con trỏ chạy trên thanh tạ, bấm SPACE khi vào vùng xanh (PERFECT) ở giữa. Cần đủ ${ex.repsRequired} rep.`,
+        `Cơ chế ${ex.mode.toUpperCase()}: ${MODE_INFO[ex.mode].howto} Cần đủ ${ex.repsRequired} rep.`,
         18,
         C.cream,
         { lineSpacing: 4, wordWrap: { width: 460 } },

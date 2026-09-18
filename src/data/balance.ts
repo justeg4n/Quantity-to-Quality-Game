@@ -1,36 +1,43 @@
 import type { KnowledgeKey, PhysicalKey } from './types';
 
 /**
- * CÂN BẰNG LÕI — KHÔNG TỰ Ý THAY ĐỔI (mục 8–9 của tài liệu thiết kế).
- * Ngưỡng tối thiểu để có thể thắng thử thách cuối cùng:
- *   Ngực>=3, Vai>=3, Lưng>=3, Chân>=3, Bụng>=3, Tay>=6  (21 điểm Gym)
+ * CÂN BẰNG LÕI — chỉ đổi khi luật chơi đổi.
+ * 4 ngày × 10 điểm = 40 điểm.
+ *
+ * Phase 3 (Phủ định của phủ định) yêu cầu 3 bài × 2 lần:
+ *   Ngực>=2, Vai>=2, Lưng>=2, Chân>=2, Bụng>=2, Tay>=4  (14 điểm Gym)
  *   Mỗi khối kiến thức >= 2                             (12 điểm Học)
- *   => 33 / 50 điểm, còn 17 điểm tự do.
- * 5 ngày × 10 điểm = 50 điểm (đổi từ 10 × 5 theo yêu cầu playtest, tổng không đổi).
+ * Hai phase đầu (thứ tự & bài tập ngẫu nhiên) tiêu hao thêm trước khi vào phase cuối (chơi hoàn hảo):
+ *   "Lượng đổi":  1 lượt bài tập X (−1 các nhóm cơ của X) + 2 câu hỏi (−1 khối mỗi câu)
+ *   "Đấu tranh":  1 rep bài tập Y (−1 các nhóm cơ của Y)   + 2 câu hỏi (−1 khối mỗi câu)
+ *   X, Y là 2 trong 3 bài Push-up / Lat Pull Down / Squat. Trường hợp xấu nhất mỗi nhóm cơ:
+ *   Ngực 3, Vai 3, Lưng 3, Chân 3, Bụng 3, Tay 6 (Tay dùng ở 2 bài) => 21 Gym; Học 12 + 4 = 16.
+ *   Thất bại/sai trừ thêm 1 ở MỌI nhóm còn lại.
+ * Tổng tối thiểu để chắc chắn thắng: 21 Gym + 16 Học = 37 / 40 điểm, còn 3 điểm dự phòng.
  */
 export const BALANCE = {
-  totalDays: 5,
+  totalDays: 4,
   pointsPerDay: 10,
   repsPerWorkout: 6,
   questionsPerStudy: 2,
   bossQuestions: 5,
-  bossExerciseReps: 3,
+  bossExerciseReps: 2,
   physicalMin: {
-    nguc: 3,
-    vai: 3,
-    lung: 3,
-    chan: 3,
-    bung: 3,
-    tay: 6,
+    nguc: 2,
+    vai: 2,
+    lung: 2,
+    chan: 2,
+    bung: 2,
+    tay: 4,
   } as Record<PhysicalKey, number>,
   knowledgeMin: 2,
-  /** Bài tập ở pha 3 và nhóm cơ bị trừ 1 điểm mỗi lần thực hiện */
+  /** Bài tập ở Phase 3 và nhóm cơ bị trừ 1 điểm mỗi lần thực hiện */
   bossExercises: [
     { id: 'pushup', name: 'Push-up', muscles: ['nguc', 'vai', 'tay'] as PhysicalKey[] },
     { id: 'latpulldown', name: 'Lat Pull Down', muscles: ['lung', 'tay'] as PhysicalKey[] },
     { id: 'squat', name: 'Squat', muscles: ['chan', 'bung'] as PhysicalKey[] },
   ],
-  /** Combo gym: 3 rep Perfect liên tiếp => combo; 2 combo => +1 điểm phụ trội */
+  /** Combo gym: 3 rep Perfect liên tiếp => combo; 2 combo => +1 điểm phụ trội (lượt tập đó nhận +2) */
   combosPerBonus: 2,
   perfectStreakForCombo: 3,
 } as const;

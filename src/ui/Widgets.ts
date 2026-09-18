@@ -272,32 +272,46 @@ export class SpeechBubble extends Phaser.GameObjects.Container {
 }
 
 /** Nút hành động lớn cho mobile (thay phím Space) */
+export interface ActionButtonOpts {
+  w?: number;
+  h?: number;
+  size?: number;
+  /** gọi khi nhả nút (hold-mode) */
+  onRelease?: () => void;
+}
+
 export class ActionButton extends Phaser.GameObjects.Container {
   private g: Phaser.GameObjects.Graphics;
-  constructor(scene: Phaser.Scene, onPress: () => void, label = 'SPACE / CHẠM', x = GAME_WIDTH - 120, y = GAME_HEIGHT - 60) {
+  private bw: number;
+  private bh: number;
+  constructor(scene: Phaser.Scene, onPress: () => void, label = 'SPACE / CHẠM', x = GAME_WIDTH - 120, y = GAME_HEIGHT - 60, opts: ActionButtonOpts = {}) {
     super(scene, x, y);
+    this.bw = opts.w ?? 200;
+    this.bh = opts.h ?? 72;
     this.g = scene.add.graphics();
     this.add(this.g);
     this.draw(false);
-    const t = txt(scene, 0, 0, label, 22, C.dark).setOrigin(0.5);
+    const t = txt(scene, 0, 0, label, opts.size ?? 22, C.dark).setOrigin(0.5);
     this.add(t);
-    this.setSize(200, 72);
+    this.setSize(this.bw, this.bh);
     this.setInteractive({ useHandCursor: true });
     this.on('pointerdown', () => {
       this.draw(true);
       onPress();
     });
-    this.on('pointerup', () => this.draw(false));
-    this.on('pointerout', () => this.draw(false));
+    this.on('pointerup', () => { this.draw(false); opts.onRelease?.(); });
+    this.on('pointerout', () => { this.draw(false); opts.onRelease?.(); });
     this.setDepth(100);
     scene.add.existing(this);
   }
   private draw(pressed: boolean): void {
+    const w = this.bw;
+    const h = this.bh;
     this.g.clear();
     this.g.fillStyle(C.borderHex, 1);
-    this.g.fillRect(-100, -36, 200, 72);
+    this.g.fillRect(-w / 2, -h / 2, w, h);
     this.g.fillStyle(pressed ? C.orangeHex : C.goldHex, 1);
-    this.g.fillRect(-95, -31 + (pressed ? 3 : 0), 190, 62 - (pressed ? 3 : 0));
+    this.g.fillRect(-w / 2 + 5, -h / 2 + 5 + (pressed ? 3 : 0), w - 10, h - 10 - (pressed ? 3 : 0));
   }
   flash(): void {
     this.draw(true);

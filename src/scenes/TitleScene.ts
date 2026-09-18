@@ -124,15 +124,17 @@ export class TitleScene extends Phaser.Scene {
       `MỤC TIÊU: Trải qua ${BALANCE.totalDays} ngày rèn luyện, mỗi ngày có ${BALANCE.pointsPerDay} ĐIỂM ĐẦU NGÀY (đồng hồ cát).`,
       `Phải tiêu HẾT ${BALANCE.pointsPerDay} điểm mới được sang ngày mới. Mỗi lượt Tập / Học tốn 1 điểm.`,
       '',
-      'WHEYSTATION (gym): chọn nhóm cơ → mini-game 6 rep (bấm SPACE liên tục hoặc canh thời điểm).',
+      'WHEYSTATION (gym): chọn nhóm cơ → mini-game 6 rep, mỗi bài một cơ chế riêng (bấm liên tục, canh thời điểm,',
+      '   giữ & thả, luân phiên trái/phải, đúng nhịp, chuỗi mũi tên).',
       '   Hoàn thành → +1 điểm nhóm cơ đó. Nhân vật to dần đúng nhóm cơ đã tập.',
       'ATHENS (học): chọn khối kiến thức → trả lời 2 câu trắc nghiệm → +1 điểm khối đó.',
       '',
-      `SAU NGÀY ${BALANCE.totalDays} — THỬ THÁCH CUỐI "VÒNG XOÁY BIỆN CHỨNG" gồm 3 pha, dùng chính thành quả đã tích luỹ:`,
-      '   mỗi bài tập ở pha cuối tiêu hao điểm các nhóm cơ liên quan, đề thi rút từ mọi khối kiến thức.',
+      `SAU NGÀY ${BALANCE.totalDays} — THỬ THÁCH CUỐI "VÒNG XOÁY BIỆN CHỨNG" gồm 3 phase (thứ tự & bài tập ngẫu nhiên), dùng chính thành quả đã tích luỹ:`,
+      '   2 phase đầu: mỗi lượt tập / câu hỏi tiêu hao 1 điểm nhóm liên quan (thất bại → −1 mọi nhóm còn lại).',
+      '   Phase cuối: chỉ còn phần chưa bị tiêu hao — mỗi bài tập trừ điểm nhóm cơ, đề thi rút từ mọi khối kiến thức.',
       '   Tích luỹ bao nhiêu là đủ? Hãy tự khám phá — lượng đổi đến đâu thì chất đổi!',
       '',
-      'Mẹo: 3 rep Perfect liên tiếp → combo; 2 combo → +1 điểm phụ trội. Đúng cả 2 câu → huy hiệu Triết gia.',
+      'Mẹo: 3 rep Perfect liên tiếp → combo; 2 combo → +1 điểm phụ trội (lượt đó +2). Đúng cả 2 câu → huy hiệu Triết gia.',
     ];
     m.root.add(txt(this, -(GAME_WIDTH - 120) / 2 + 24, -(GAME_HEIGHT - 80) / 2 + 20, lines.join('\n'), 19, C.cream, { lineSpacing: 3, wordWrap: { width: GAME_WIDTH - 120 - 48 } }));
     m.root.add(new Button(this, 0, (GAME_HEIGHT - 80) / 2 - 40, 'ĐÃ HIỂU', () => m.close(), { w: 220 }));

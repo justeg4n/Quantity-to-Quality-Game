@@ -32,6 +32,14 @@ export const QuizEngine = {
     return [...unseen, ...rest].slice(0, count).map(shuffleOptions);
   },
 
+  /** Rút 1 câu của một khối cụ thể, ưu tiên câu chưa dùng trong đợt này. */
+  drawFrom(category: KnowledgeKey, exclude: Set<string> = new Set()): QuizQuestion {
+    const pool = questionsByCategory(category);
+    const fresh = pool.filter((q) => !exclude.has(q.id));
+    const pick = shuffle(fresh.length ? fresh : pool)[0];
+    return shuffleOptions(pick);
+  },
+
   /** Rút ngẫu nhiên từ toàn bộ 6 khối, tránh trùng id trong cùng đợt. */
   drawAny(count: number, exclude: Set<string> = new Set()): QuizQuestion[] {
     const pool = shuffle(QUESTIONS.filter((q) => !exclude.has(q.id)));
@@ -39,7 +47,7 @@ export const QuizEngine = {
   },
 
   /**
-   * Đề thi pha 3: 5 câu từ 5 khối khác nhau (ngẫu nhiên 5/6 khối).
+   * Đề thi Phase 3: 5 câu từ 5 khối khác nhau (ngẫu nhiên 5/6 khối).
    * Ưu tiên câu người chơi ĐÃ học (thưởng cho việc tích luỹ), nếu không thì rút mới.
    * Nếu có khối nào chưa đủ ngưỡng, đảm bảo khối đó xuất hiện trong đề
    * để công thức thắng/thua luôn được phản ánh chính xác.

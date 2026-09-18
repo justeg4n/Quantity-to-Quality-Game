@@ -16,8 +16,8 @@ export interface DayRecord {
 export type Weather = 'sun' | 'rain' | 'wind';
 
 export interface DayState {
-  currentDay: number; // 1..10
-  pointsLeft: number; // 0..5
+  currentDay: number; // 1..totalDays
+  pointsLeft: number; // 0..pointsPerDay
   gymToday: number;
   studyToday: number;
   philosopherBadge: boolean; // huy hiệu "Triết gia" tạm thời trong ngày
@@ -25,7 +25,16 @@ export interface DayState {
   log: DayRecord[];
 }
 
-export type ExerciseMode = 'mash' | 'timing';
+/**
+ * Mỗi bài tập có một cơ chế chơi riêng:
+ * - mash: bấm liên tục đủ số lần trong thời gian cho phép
+ * - timing: bấm khi con trỏ chạy vào vùng xanh
+ * - hold: giữ phím để kéo, thả ra đúng vùng xanh
+ * - alternate: bấm luân phiên TRÁI / PHẢI đúng thứ tự
+ * - rhythm: bấm đúng nhịp khi nốt chạm vạch
+ * - sequence: bấm đúng chuỗi mũi tên hiển thị
+ */
+export type ExerciseMode = 'mash' | 'timing' | 'hold' | 'alternate' | 'rhythm' | 'sequence';
 
 export interface ExerciseConfig {
   id: string;
@@ -42,6 +51,16 @@ export interface ExerciseConfig {
   mashPerRep?: number;
   /** tốc độ con trỏ ở timing-mode (chu kỳ/giây) */
   timingSpeed?: number;
+  /** hold-mode: thời gian giữ để thanh kéo đầy (ms) */
+  holdMs?: number;
+  /** alternate-mode: số lần bấm luân phiên đúng để hoàn thành 1 rep */
+  altPerRep?: number;
+  /** rhythm-mode: khoảng cách giữa 2 nốt (ms) */
+  beatMs?: number;
+  /** rhythm-mode: thời gian nốt chạy từ mép tới vạch (ms) */
+  travelMs?: number;
+  /** sequence-mode: độ dài chuỗi mũi tên của 1 rep */
+  seqLen?: number;
 }
 
 export interface QuizQuestion {
@@ -70,7 +89,7 @@ export interface SaveData {
   seenQuestions: string[];
   gymVisits: number;
   athensVisits: number;
-  comboCount: number; // số lần đạt combo gym (2 lần => +1 điểm phụ trội)
+  comboCount: number; // số lần đạt combo gym (2 lần => +1 điểm phụ trội, lượt đó +2)
   totalGym: number;
   totalStudy: number;
   phase: 'training' | 'boss' | 'ended';

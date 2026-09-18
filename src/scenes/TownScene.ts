@@ -98,7 +98,7 @@ export class TownScene extends Phaser.Scene {
     // Hết điểm => kết thúc ngày
     if (game.pointsLeft === 0) {
       this.prompt.setText('Hết điểm đầu ngày — mặt trời sắp lặn...');
-      this.endDayBtn = new Button(this, GAME_WIDTH / 2, GAME_HEIGHT - 50, game.isLastDay() ? 'KẾT THÚC NGÀY 10 ▶' : 'KẾT THÚC NGÀY ▶', () => this.endDay(), {
+      this.endDayBtn = new Button(this, GAME_WIDTH / 2, GAME_HEIGHT - 50, game.isLastDay() ? `KẾT THÚC NGÀY ${BALANCE.totalDays} ▶` : 'KẾT THÚC NGÀY ▶', () => this.endDay(), {
         w: 280,
         h: 50,
         fill: C.orangeHex,

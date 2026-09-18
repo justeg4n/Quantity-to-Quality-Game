@@ -371,7 +371,7 @@ function buildAthens(scene: Phaser.Scene): void {
   g.destroy();
 }
 
-/** Boss "Vòng xoáy biện chứng" — 3 texture theo pha */
+/** Boss "Vòng xoáy biện chứng" — 3 texture theo phase */
 function buildBoss(scene: Phaser.Scene): void {
   const variants: Array<[string, number, number, number]> = [
     ['boss-1', 0x9b5de5, 0x5a189a, 0x240046],

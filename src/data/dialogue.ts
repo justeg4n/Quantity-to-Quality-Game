@@ -66,14 +66,18 @@ export function dayDiary(day: number, gym: number, study: number, weather: strin
 
 export const BOSS_LINES = {
   intro: [
-    'Ta là VÒNG XOÁY BIỆN CHỨNG. Mười ngày tích luỹ của ngươi... hãy chứng minh nó đủ để đổi chất!',
+    `Ta là VÒNG XOÁY BIỆN CHỨNG. ${BALANCE.totalDays} ngày tích luỹ của ngươi... hãy chứng minh nó đủ để đổi chất!`,
   ],
-  phase1: 'PHA 1 — LƯỢNG ĐỔI DẪN ĐẾN CHẤT ĐỔI',
-  phase1Hint: 'Trả lời đúng để làm chậm thanh Năng lượng. Khi có "BÙNG NỔ", bấm SPACE liên tục!',
-  phase2: 'PHA 2 — ĐẤU TRANH GIỮA CÁC MẶT ĐỐI LẬP',
-  phase2Hint: 'Bên trái: bấm SPACE khi con trỏ vào vùng xanh. Bên phải: chọn đáp án bằng chuột hoặc phím 1–4.',
-  phase3: 'PHA 3 — PHỦ ĐỊNH CỦA PHỦ ĐỊNH',
-  phase3Hint: 'Dùng chính thành quả những ngày rèn luyện: mỗi lần tập trừ 1 điểm nhóm cơ liên quan. Giải đúng cả 5 câu.',
+  /** Phase tiêu hao A: câu hỏi + bùng nổ thể lực */
+  quantity: 'LƯỢNG ĐỔI DẪN ĐẾN CHẤT ĐỔI',
+  quantityHint: 'Trả lời đúng để làm chậm thanh Năng lượng. Khi có "BÙNG NỔ", bấm SPACE liên tục!',
+  /** Phase tiêu hao B: chia đôi thể chất / kiến thức */
+  struggle: 'ĐẤU TRANH GIỮA CÁC MẶT ĐỐI LẬP',
+  struggleHint: 'Bên trái: bấm SPACE khi con trỏ vào vùng xanh. Bên phải: chọn đáp án bằng chuột hoặc phím 1–4.',
+  /** Phase cuối: dùng phần chỉ số còn lại */
+  negation: 'PHỦ ĐỊNH CỦA PHỦ ĐỊNH',
+  negationHint: 'Chỉ số hiện tại = tích luỹ − đã tiêu hao ở hai phase trước. Mỗi lần tập trừ 1 điểm nhóm cơ liên quan. Giải đúng cả 5 câu.',
+  drainRule: 'Mỗi lượt tập trừ 1 điểm các nhóm cơ liên quan · mỗi câu hỏi trừ 1 điểm khối đó. Thất bại / sai → trừ thêm 1 ở MỌI nhóm còn lại.',
   win: 'Lượng đã đủ. Chất đã đổi. Ngươi không còn là kẻ bước vào đây ngày đầu tiên.',
   lose: 'Lượng chưa đủ để đổi chất. Nhưng phủ định không phải là kết thúc — hãy quay lại.',
 };
