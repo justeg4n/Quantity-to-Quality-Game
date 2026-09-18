@@ -59,8 +59,6 @@ export class TitleScene extends Phaser.Scene {
     let y = 215;
     new Button(this, GAME_WIDTH / 2, y, 'VÀO GAME', () => this.enter(), { w: 300, h: 50, fill: C.greenHex, color: C.dark });
     y += 62;
-    new Button(this, GAME_WIDTH / 2, y, 'BẢNG XẾP HẠNG', () => this.scene.start(SCENE.scoreboard), { w: 300, h: 50, fill: C.blueHex });
-    y += 62;
     new Button(this, GAME_WIDTH / 2, y, 'HƯỚNG DẪN', () => this.showHelp(), { w: 300, h: 50 });
 
     // Mute

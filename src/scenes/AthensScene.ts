@@ -125,7 +125,7 @@ export class AthensScene extends Phaser.Scene {
 
   private startQuiz(k: KnowledgeKey): void {
     const spentIndex = game.pointsLeft - 1;
-    if (!game.spend('study')) return;
+    if (!game.spend('study', k)) return;
     this.hud.spend(spentIndex);
     Sfx.stopBgm();
     this.cameras.main.fadeOut(300, 0, 0, 0);

@@ -158,7 +158,7 @@ export class GymScene extends Phaser.Scene {
 
   private startExercise(k: PhysicalKey): void {
     const spentIndex = game.pointsLeft - 1;
-    if (!game.spend('gym')) return;
+    if (!game.spend('gym', k)) return;
     this.hud.spend(spentIndex);
     Sfx.stopBgm();
     this.cameras.main.fadeOut(300, 0, 0, 0);

@@ -6,7 +6,7 @@ boss 3 phase **"Vòng xoáy biện chứng"**.
 
 > Phaser 3 · TypeScript · Vite · deploy tĩnh trên Vercel. Không cần backend; tiến trình lưu bằng `localStorage`.
 >
-> Trước khi vào game người chơi nhập **tên**: mỗi tên một khe lưu riêng (trên máy) và một hồ sơ trên **Bảng xếp hạng toàn cầu** (server): số ván, trận thắng, điểm Gym/Học cao nhất, huy hiệu, lịch sử thử thách và **nhân vật cuối cùng** của ván gần nhất (để so sánh & xếp hạng nhân vật). Nhập tên `admin` sẽ hiện thêm ô mật khẩu (`Quality@123`) để vào **Trang quản trị**: bảng xếp hạng, tiến trình chi tiết từng người chơi (chỉ số, nhật ký ngày, lịch sử boss, nhân vật cuối) và xoá dữ liệu.
+> Trước khi vào game người chơi nhập **tên**: mỗi tên một khe lưu riêng (trên máy) và một hồ sơ trên **Bảng xếp hạng toàn cầu** (server): số ván, trận thắng, điểm Gym/Học cao nhất, huy hiệu, lịch sử thử thách và **nhân vật cuối cùng** của ván gần nhất (để so sánh & xếp hạng nhân vật). Người chơi chỉ thấy kết quả của chính mình; **bảng xếp hạng chỉ admin xem được**. Nhập tên `admin` sẽ hiện thêm ô mật khẩu (`Quality@123`) để vào **Trang quản trị**: danh sách người chơi, nhân vật hiện tại của từng người, từng ngày 1–4 đã tập nhóm cơ nào / học khối nào, thử thách 3 phase đã làm gì (bài tập, từng câu hỏi đúng/sai, kết quả từng phase), chỉ số, bảng xếp hạng nhân vật và xoá dữ liệu.
 
 ## Backend (bảng xếp hạng chung cho mọi máy)
 

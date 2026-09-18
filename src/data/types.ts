@@ -6,11 +6,36 @@ export interface PlayerStats {
   knowledge: Record<KnowledgeKey, number>;
 }
 
+/** Một lượt tiêu điểm trong ngày: tập nhóm cơ nào / học khối nào */
+export type DayAction = { kind: 'gym'; key: PhysicalKey } | { kind: 'study'; key: KnowledgeKey };
+
 export interface DayRecord {
   day: number;
   gym: number;
   study: number;
   diary: string;
+  /** thứ tự các lượt tập/học trong ngày (bản save cũ có thể thiếu) */
+  actions?: DayAction[];
+}
+
+/** Nhật ký một phase của thử thách cuối (gộp mọi lần thử lại phase đó) */
+export interface BossPhaseLog {
+  kind: 'quantity' | 'struggle' | 'negation';
+  label: string;
+  /** bài tập đã thực hiện, ví dụ "Pec Fly ×1 lượt", "Push-up 2/2" */
+  exercises: string[];
+  questions: Array<{ cat: KnowledgeKey; correct: boolean }>;
+  attempts: number;
+  result: 'pass' | 'fail' | 'quit' | 'playing';
+}
+
+/** Nhật ký cả trận boss gần nhất */
+export interface BossLog {
+  at: number;
+  order: Array<'quantity' | 'struggle' | 'negation'>;
+  phases: BossPhaseLog[];
+  won: boolean | null;
+  reasons: string[];
 }
 
 export type Weather = 'sun' | 'rain' | 'wind';
@@ -23,6 +48,8 @@ export interface DayState {
   philosopherBadge: boolean; // huy hiệu "Triết gia" tạm thời trong ngày
   weather: Weather;
   log: DayRecord[];
+  /** các lượt tập/học của ngày hiện tại (chốt vào DayRecord khi kết thúc ngày) */
+  actions: DayAction[];
 }
 
 /**

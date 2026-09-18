@@ -1,5 +1,5 @@
 import { mergeRecords } from '../../api/_lib/merge.js';
-import type { Badges, DayRecord, PlayerStats } from '../data/types';
+import type { Badges, BossLog, DayAction, DayRecord, PlayerStats } from '../data/types';
 import type { Habits } from '../gfx/Avatar';
 import { Api } from './Api';
 
@@ -14,6 +14,8 @@ export interface BossRecord {
   totalGym: number;
   totalStudy: number;
   newGamePlus: number;
+  /** nhật ký 3 phase của trận đó */
+  log?: BossLog | null;
 }
 
 export interface PlayerCurrent {
@@ -27,6 +29,12 @@ export interface PlayerCurrent {
   newGamePlus: number;
   bossAttempts: number;
   lastWon: boolean | null;
+  /** ngày bỏ học / bỏ tập → vẽ đúng ngoại hình hiện tại */
+  habits?: Habits;
+  /** các lượt tập/học của ngày đang chơi dở */
+  todayActions?: DayAction[];
+  /** nhật ký trận boss gần nhất */
+  bossLog?: BossLog | null;
 }
 
 /** Nhân vật cuối cùng khi kết thúc ván gần nhất — để hiển thị & so sánh trên bảng xếp hạng */

@@ -48,7 +48,7 @@ export const SOURCE_NOTE: Record<'server' | 'server-temp' | 'local', string> = {
   local: '⚠ Không kết nối được máy chủ — chỉ hiển thị dữ liệu trên máy này.',
 };
 
-/** Bảng xếp hạng: mọi người chơi (server) kèm nhân vật cuối cùng của ván gần nhất để so sánh */
+/** Bảng xếp hạng (chỉ admin mở từ trang quản trị): mọi người chơi kèm nhân vật cuối cùng của ván gần nhất để so sánh */
 export class ScoreboardScene extends Phaser.Scene {
   constructor() {
     super(SCENE.scoreboard);
@@ -62,7 +62,7 @@ export class ScoreboardScene extends Phaser.Scene {
     g.fillStyle(0x0b0716, 0.95).fillRect(34, 20, GAME_WIDTH - 68, GAME_HEIGHT - 40);
     txt(this, GAME_WIDTH / 2, 26, '★  BẢNG XẾP HẠNG NHÂN VẬT  ★', 32, C.gold).setOrigin(0.5, 0);
     const status = txt(this, GAME_WIDTH / 2, 62, 'Đang tải từ máy chủ...', 16, C.gray).setOrigin(0.5, 0);
-    new Button(this, GAME_WIDTH / 2, GAME_HEIGHT - 40, '◀ VỀ MÀN HÌNH CHÍNH', () => this.back(), { w: 280, h: 40, size: 20 });
+    new Button(this, GAME_WIDTH / 2, GAME_HEIGHT - 40, '◀ VỀ TRANG QUẢN TRỊ', () => this.back(), { w: 280, h: 40, size: 20 });
     this.cameras.main.fadeIn(300, 0, 0, 0);
 
     void loadRanking().then(({ players, source }) => {
@@ -112,6 +112,6 @@ export class ScoreboardScene extends Phaser.Scene {
   private back(): void {
     Sfx.click();
     this.cameras.main.fadeOut(250, 0, 0, 0);
-    this.cameras.main.once('camerafadeoutcomplete', () => this.scene.start(SCENE.title));
+    this.cameras.main.once('camerafadeoutcomplete', () => this.scene.start(SCENE.admin));
   }
 }

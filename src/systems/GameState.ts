@@ -1,6 +1,6 @@
 import { BALANCE, KNOWLEDGE_KEYS } from '../data/balance';
 import { dayDiary } from '../data/dialogue';
-import type { Badges, DayState, KnowledgeKey, SaveData, Weather } from '../data/types';
+import type { Badges, BossLog, DayState, KnowledgeKey, PhysicalKey, SaveData, Weather } from '../data/types';
 import { setAvatarHabits } from '../gfx/Avatar';
 import { Players } from './Players';
 import { SaveSystem } from './SaveSystem';
@@ -20,6 +20,7 @@ function freshDay(day = 1): DayState {
     philosopherBadge: false,
     weather: randomWeather(),
     log: [],
+    actions: [],
   };
 }
 
@@ -42,6 +43,8 @@ class GameStateImpl {
   bossAttempts = 0;
   /** Kết quả trận boss gần nhất — dùng cho EndingScene */
   lastBossResult: { won: boolean; reasons: string[] } | null = null;
+  /** Nhật ký chi tiết trận boss gần nhất (BossScene ghi) — admin xem */
+  lastBossLog: BossLog | null = null;
   muted = false;
   /** Tên người chơi hiện tại — mỗi tên một khe lưu và một hồ sơ trên bảng xếp hạng */
   playerName = Players.currentName() ?? 'Khách';
@@ -76,13 +79,17 @@ class GameStateImpl {
         newGamePlus: this.newGamePlus,
         bossAttempts: this.bossAttempts,
         lastWon: this.lastBossResult?.won ?? null,
+        habits: this.habits(),
+        todayActions: [...this.day.actions],
+        bossLog: this.lastBossLog,
       };
     });
   }
 
   /** Ghi kết quả một trận boss vào lịch sử người chơi */
-  recordBossResult(won: boolean, reasons: string[]): void {
+  recordBossResult(won: boolean, reasons: string[], log: BossLog | null = null): void {
     const stats = this.stats;
+    this.lastBossLog = log;
     Players.update(this.playerName, (r) => {
       if (won) r.wins += 1;
       else r.losses += 1;
@@ -102,6 +109,7 @@ class GameStateImpl {
         totalGym: this.totalGym,
         totalStudy: this.totalStudy,
         newGamePlus: this.newGamePlus,
+        log,
       });
       if (r.history.length > 50) r.history.splice(0, r.history.length - 50);
     });
@@ -125,6 +133,7 @@ class GameStateImpl {
     this.newGamePlus = ngp;
     this.bossAttempts = 0;
     this.lastBossResult = null;
+    this.lastBossLog = null;
     this.syncHabits();
     this.save();
   }
@@ -146,6 +155,7 @@ class GameStateImpl {
     if (!d) return false;
     this.stats = new StatsManager(d.stats);
     this.day = d.day;
+    this.day.actions ??= [];
     this.badges = d.badges;
     this.seenQuestions = new Set(d.seenQuestions);
     this.gymVisits = d.gymVisits;
@@ -199,16 +209,20 @@ class GameStateImpl {
     return this.day.pointsLeft > 0;
   }
 
-  /** Tiêu 1 điểm đầu ngày cho gym hoặc học. Trả false nếu hết điểm. */
-  spend(kind: 'gym' | 'study'): boolean {
+  /** Tiêu 1 điểm đầu ngày cho gym (nhóm cơ) hoặc học (khối). Trả false nếu hết điểm. */
+  spend(kind: 'gym', key: PhysicalKey): boolean;
+  spend(kind: 'study', key: KnowledgeKey): boolean;
+  spend(kind: 'gym' | 'study', key: PhysicalKey | KnowledgeKey): boolean {
     if (this.day.pointsLeft <= 0) return false;
     this.day.pointsLeft -= 1;
     if (kind === 'gym') {
       this.day.gymToday += 1;
       this.totalGym += 1;
+      this.day.actions.push({ kind: 'gym', key: key as PhysicalKey });
     } else {
       this.day.studyToday += 1;
       this.totalStudy += 1;
+      this.day.actions.push({ kind: 'study', key: key as KnowledgeKey });
     }
     this.save();
     return true;
@@ -235,7 +249,7 @@ class GameStateImpl {
       }
     }
     const diary = dayDiary(d.currentDay, d.gymToday, d.studyToday, d.weather);
-    d.log.push({ day: d.currentDay, gym: d.gymToday, study: d.studyToday, diary });
+    d.log.push({ day: d.currentDay, gym: d.gymToday, study: d.studyToday, diary, actions: [...d.actions] });
     this.syncHabits();
     this.updateBadges();
     const goBoss = d.currentDay >= BALANCE.totalDays;

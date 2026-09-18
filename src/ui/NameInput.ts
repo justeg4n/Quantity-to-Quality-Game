@@ -36,11 +36,22 @@ export function promptName(scene: Phaser.Scene, onDone: (r: NameResult) => void,
   const ok = node.querySelector<HTMLButtonElement>('#q2q-ok')!;
   const cancel = node.querySelector<HTMLButtonElement>('#q2q-cancel')!;
 
-  // Phaser bắt phím toàn cục — tắt trong lúc gõ để không kích hoạt SPACE/WASD của game
+  // Phaser giữ "capture" TOÀN CỤC cho SPACE / W A S D / mũi tên (preventDefault) — nếu không gỡ, gõ chữ a, d, s, w
+  // vào ô nhập sẽ bị nuốt (không gõ nổi "admin" hay "Quality@123"). Tắt cả plugin lẫn manager trong lúc gõ, khôi phục khi đóng.
   const kb = scene.input.keyboard;
-  if (kb) kb.enabled = false;
+  const mgr = kb?.manager;
+  const savedCaptures = mgr ? [...mgr.captures] : [];
+  if (kb) {
+    kb.clearCaptures();
+    kb.enabled = false;
+  }
+  if (mgr) mgr.enabled = false;
   const close = () => {
-    if (kb) kb.enabled = true;
+    if (mgr) mgr.enabled = true;
+    if (kb) {
+      kb.enabled = true;
+      if (savedCaptures.length) kb.addCapture(savedCaptures);
+    }
     dom.destroy();
   };
 
@@ -78,5 +89,5 @@ export function promptName(scene: Phaser.Scene, onDone: (r: NameResult) => void,
   ok.addEventListener('click', submit);
   cancel.addEventListener('click', () => { close(); onCancel?.(); });
   refresh();
-  setTimeout(() => nick.focus(), 50);
+  setTimeout(() => { nick.focus(); nick.select(); }, 50); // bôi đen tên cũ để gõ là thay thế
 }

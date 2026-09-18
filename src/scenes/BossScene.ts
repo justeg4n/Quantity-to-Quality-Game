@@ -3,7 +3,7 @@ import { C, GAME_HEIGHT, GAME_WIDTH, SCENE } from '../config/constants';
 import { BALANCE, KNOWLEDGE_KEYS, KNOWLEDGE_LABEL, KNOWLEDGE_SHORT, PHYSICAL_KEYS, PHYSICAL_LABEL } from '../data/balance';
 import { BOSS_LINES } from '../data/dialogue';
 import { EXERCISES } from '../data/exercises';
-import type { KnowledgeKey, PhysicalKey, PlayerStats, QuizQuestion } from '../data/types';
+import type { BossLog, BossPhaseLog, KnowledgeKey, PhysicalKey, PlayerStats, QuizQuestion } from '../data/types';
 import { ensureAvatar, type Pose } from '../gfx/Avatar';
 import { SkyLayer } from '../gfx/Sky';
 import { TIMING_ZONES, TimingEngine } from '../systems/ExerciseEngine';
@@ -88,6 +88,8 @@ export class BossScene extends Phaser.Scene {
   private usedQ = new Set<string>();
   private lastCat: KnowledgeKey | null = null;
   private busy = false;
+  /** Nhật ký trận này (admin xem người chơi đã làm gì ở từng phase) */
+  private log!: BossLog;
 
   /** Thứ tự phase & bài tập của lần chơi này (ngẫu nhiên mỗi trận) */
   private order: PhaseKind[] = [];
@@ -158,6 +160,7 @@ export class BossScene extends Phaser.Scene {
     // Ngẫu nhiên hoá: thứ tự 2 phase tiêu hao, và bài tập cho từng phase (phase cuối dùng cả 3, thứ tự ngẫu nhiên)
     this.order = [...shuffle(['quantity', 'struggle'] as PhaseKind[]), 'negation'];
     this.phaseIndex = 0;
+    this.log = { at: Date.now(), order: [...this.order], phases: [], won: null, reasons: [] };
     this.exercises = shuffle(BALANCE.bossExercises).map((e) => ({ id: e.id, name: e.name, muscles: [...e.muscles] }));
     this.gymPool = shuffle(PHYSICAL_KEYS).map((k) => ({ id: k, name: EXERCISES[k].name, muscles: [k] }));
     this.qzEx = this.gymPool[0];
@@ -352,6 +355,21 @@ export class BossScene extends Phaser.Scene {
     this.time.delayedCall(650, () => { this.setAvatar('idle'); done?.(); });
   }
 
+  /** Lấy (hoặc tạo) mục nhật ký của phase; mỗi lần vào phase = 1 lần thử */
+  private phaseLog(kind: PhaseKind, newAttempt = false): BossPhaseLog {
+    let e = this.log.phases.find((p) => p.kind === kind);
+    if (!e) {
+      const label = kind === 'quantity' ? BOSS_LINES.quantity : kind === 'struggle' ? BOSS_LINES.struggle : BOSS_LINES.negation;
+      e = { kind, label, exercises: [], questions: [], attempts: 0, result: 'playing' };
+      this.log.phases.push(e);
+    }
+    if (newAttempt) {
+      e.attempts += 1;
+      e.result = 'playing';
+    }
+    return e;
+  }
+
   private startPhase(kind: PhaseKind): void {
     if (kind === 'quantity') this.startQuantity();
     else if (kind === 'struggle') this.startStruggle();
@@ -366,6 +384,7 @@ export class BossScene extends Phaser.Scene {
 
   private failPhase(kind: PhaseKind): void {
     this.phase = 'intro';
+    this.phaseLog(kind).result = 'fail';
     this.playerHit();
     Sfx.lose();
     const n = this.order.indexOf(kind) + 1;
@@ -377,6 +396,7 @@ export class BossScene extends Phaser.Scene {
 
   private passPhase(kind: PhaseKind, message: string): void {
     this.phase = 'intro';
+    this.phaseLog(kind).result = 'pass';
     Sfx.combo();
     floatText(this, GAME_WIDTH / 2, 120, `PHASE ${this.order.indexOf(kind) + 1} HOÀN THÀNH — ${message}`, C.gold, 30);
     this.bossHit();
@@ -400,6 +420,7 @@ export class BossScene extends Phaser.Scene {
   private startQuantity(): void {
     this.resetPhaseRoot();
     this.phase = 'quantity';
+    this.phaseLog('quantity', true);
     this.boss.setTexture('boss-1');
     this.bossGlow.setFillStyle(0x9b5de5, 0.18);
     this.phaseTitle.setText(this.phaseLabel('quantity'));
@@ -439,6 +460,7 @@ export class BossScene extends Phaser.Scene {
     this.drainKnowledge(q.category, false, GAME_WIDTH / 2, ARENA_H - 30);
     this.qzQuiz.show(q, (_i, correct) => {
       this.qz.answered++;
+      this.phaseLog('quantity').questions.push({ cat: q.category, correct });
       if (correct) {
         this.qz.correct++;
         this.qz.drainMul = Math.max(0.35, this.qz.drainMul * 0.78);
@@ -467,6 +489,7 @@ export class BossScene extends Phaser.Scene {
     // mỗi lần bùng nổ dùng một bài tập khác (xoay vòng), lần đầu luôn là exercises[0]
     this.qzEx = this.gymPool[this.qz.bursts % this.gymPool.length];
     this.qz.bursts++;
+    this.phaseLog('quantity').exercises.push(`${this.qzEx.name} (bùng nổ ×${QZ.burstPresses})`);
     this.qz.burst = true;
     this.qz.burstPresses = 0;
     this.qz.burstTimer = QZ.burstMs;
@@ -495,6 +518,8 @@ export class BossScene extends Phaser.Scene {
 
   private qzEndBurst(success: boolean): void {
     this.qz.burst = false;
+    const exs = this.phaseLog('quantity').exercises;
+    if (exs.length) exs[exs.length - 1] += success ? ' ✔' : ' ✘';
     this.qzBurstText?.destroy();
     this.qzBurstText = null;
     this.actionBtn?.setVisible(false);
@@ -540,6 +565,7 @@ export class BossScene extends Phaser.Scene {
   private startStruggle(): void {
     this.resetPhaseRoot();
     this.phase = 'struggle';
+    this.phaseLog('struggle', true);
     this.boss.setTexture('boss-2');
     this.bossGlow.setFillStyle(0xef476f, 0.18);
     this.phaseTitle.setText(this.phaseLabel('struggle'));
@@ -604,6 +630,7 @@ export class BossScene extends Phaser.Scene {
     this.sp.reps = 0;
     this.sp.qDone = false;
     this.spTitleLeft.setText(`CẶP ${this.sp.round + 1}/${SP.rounds} — ${ex.name.toUpperCase()}`);
+    this.phaseLog('struggle').exercises.push(`Cặp ${this.sp.round + 1}: ${ex.name} ×${SP.repsPerRound} rep`);
     this.setAvatar(posesFor(ex.id)[0]);
     this.drainPhysical(ex.muscles, false, AVATAR_X + 120, ARENA_H - 50);
     this.spAsk();
@@ -619,6 +646,7 @@ export class BossScene extends Phaser.Scene {
     this.drainKnowledge(q.category, false, 720, ARENA_H - 30);
     this.spQuiz.show(q, (_i, correct) => {
       this.sp.qActive = false;
+      this.phaseLog('struggle').questions.push({ cat: q.category, correct });
       if (correct) {
         this.sp.qDone = true;
         Sfx.correct();
@@ -686,6 +714,7 @@ export class BossScene extends Phaser.Scene {
   private startNegation(): void {
     this.resetPhaseRoot();
     this.phase = 'negation';
+    this.phaseLog('negation', true);
     this.boss.setTexture('boss-3');
     this.bossGlow.setFillStyle(0xffd166, 0.18);
     this.phaseTitle.setText(this.phaseLabel('negation'));
@@ -822,6 +851,7 @@ export class BossScene extends Phaser.Scene {
       };
       this.fnQuiz.show(garbled, () => {
         this.fnWrong.push(q.category);
+        this.phaseLog('negation').questions.push({ cat: q.category, correct: false });
         Sfx.wrong();
         this.playerHit();
         floatText(this, 720, PANEL_Y + 120, 'Kiến thức chưa đủ để giải!', C.red, 20);
@@ -831,6 +861,7 @@ export class BossScene extends Phaser.Scene {
       return;
     }
     this.fnQuiz.show(q, (_i, correct) => {
+      this.phaseLog('negation').questions.push({ cat: q.category, correct });
       if (correct) {
         Sfx.correct();
         this.bossHit();
@@ -866,6 +897,9 @@ export class BossScene extends Phaser.Scene {
     const physOk = this.fnPhysDone;
     const knowOk = this.fnExamDone && this.fnWrong.length === 0;
     const won = physOk && knowOk && !gaveUp;
+    const fl = this.phaseLog('negation');
+    fl.exercises = this.exercises.map((ex) => `${ex.name} ${this.fnCounts[ex.id] ?? 0}/${BALANCE.bossExerciseReps}`);
+    fl.result = gaveUp ? 'quit' : won ? 'pass' : 'fail';
 
     // lý do thua: chỉ số lúc vào phase cuối (đã trừ tiêu hao 2 phase đầu) chưa đạt ngưỡng + câu sai
     const reasons: string[] = [];
@@ -881,7 +915,9 @@ export class BossScene extends Phaser.Scene {
     game.lastBossResult = { won, reasons };
     game.phase = 'ended';
     if (won) game.badges.champion = true;
-    game.recordBossResult(won, reasons);
+    this.log.won = won;
+    this.log.reasons = reasons;
+    game.recordBossResult(won, reasons, this.log);
     game.save();
 
     Sfx.stopBgm();

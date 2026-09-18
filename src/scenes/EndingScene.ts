@@ -98,8 +98,7 @@ export class EndingScene extends Phaser.Scene {
 
     // ─── Nút ───
     const by = GAME_HEIGHT - 40;
-    new Button(this, GAME_WIDTH - 110, GAME_HEIGHT - 92, 'BẢNG XẾP HẠNG', () => { Sfx.stopBgm(); this.scene.start(SCENE.scoreboard); }, { w: 190, h: 34, size: 17, fill: C.blueHex }).setDepth(30);
-    txt(this, px0 + 24, GAME_HEIGHT - 100, `Người chơi: ${game.playerName} — kết quả đã ghi vào bảng xếp hạng.`, 15, C.gray).setDepth(21);
+    txt(this, px0 + 24, GAME_HEIGHT - 100, `Người chơi: ${game.playerName} — kết quả đã được ghi nhận.`, 15, C.gray).setDepth(21);
     if (!won) {
       new Button(this, 190, by, 'THỬ LẠI THỬ THÁCH', () => this.retryBoss(), { w: 250, h: 46, fill: C.redHex, size: 20 }).setDepth(30);
     } else {
