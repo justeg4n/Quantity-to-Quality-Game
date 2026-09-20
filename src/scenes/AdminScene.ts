@@ -63,8 +63,8 @@ export class AdminScene extends Phaser.Scene {
     this.detail = this.add.container(0, 0);
     this.cameras.main.fadeIn(300, 0, 0, 0);
     void this.reload();
-    // cập nhật "thời gian thực": tự tải lại mỗi 10 giây, giữ nguyên người đang chọn & tab
-    this.time.addEvent({ delay: 10000, loop: true, callback: () => void this.reload() });
+    // cập nhật "thời gian thực": tự tải lại mỗi 30 giây (không quá dày để đỡ tốn quota Advanced Operations của Blob), giữ nguyên người đang chọn & tab
+    this.time.addEvent({ delay: 30000, loop: true, callback: () => void this.reload() });
   }
 
   private async reload(): Promise<void> {
